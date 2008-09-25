@@ -1,0 +1,59 @@
+ZCML directives
+===============
+
+  >>> from zope.configuration.xmlconfig import xmlconfig, XMLConfig
+  >>> from StringIO import StringIO
+
+Load meta configuration.
+  
+  >>> import repoze.skins
+  >>> XMLConfig('meta.zcml', repoze.skins)()
+
+To keep the examples simple, we define a ZCML-template.
+  
+  >>> template = """\
+  ... <configure
+  ...     xmlns="http://namespaces.zope.org/zope"
+  ...     xmlns:bfg="http://namespaces.repoze.org/bfg">
+  ...   %s
+  ... </configure>"""
+
+  >>> path = repoze.skins.__path__[0]
+  
+Registering a template directory
+--------------------------------
+
+The most simple registration makes templates available for any context
+and any request type.
+
+  >>> xmlconfig(StringIO(template % ("""\
+  ...   <bfg:templates
+  ...     directory="%s/tests/templates"
+  ...   />""" % path)))
+
+Let's set up a context and test request.
+
+  >>> from repoze.bfg.interfaces import IRequest
+  >>> from webob import Request
+  >>> request = Request({})
+  >>> interface.alsoProvides(request, IRequest)
+  
+  >>> class Context(object):
+  ...     pass
+  >>> context = Context()
+  
+The template directory contains two templates, "hello.pt" and
+"world.pt". We'll verify that corresponding views have been
+registered with the component architecture.
+
+  >>> from repoze.bfg.interfaces import IView
+  >>> print component.getMultiAdapter(
+  ...    (context, request), IView, name=u"hello")
+  200 OK
+  content-type: text/html; charset=UTF-8
+  Content-Length: ...
+  <BLANKLINE>
+  <html>
+    <span>Hello,</span>
+    <span>world!</span>
+  </html>
