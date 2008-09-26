@@ -93,7 +93,12 @@ def templates(_context, directory, for_=None, request_type=IRequest,
                 macro = create_macro_from_template(template)
                 component.provideAdapter(macro, (for_, request_type), IMacro, name)
 
-    component.provideHandler(event_handler, (INewRequest,))
+    _context.action(
+        discriminator = ('registerHandler', id(event_handler), INewRequest),
+        callable = handler,
+        args = ('registerHandler', event_handler, (INewRequest,), '', '',
+                False),
+        )
 
     for name, fullpath, rel_path in find_templates(directory):
         # the view name is given by the relative path where the path
