@@ -27,14 +27,13 @@ and given a name based on the relative path to the template file
 The skin template components are callables and return a WSGI response
 object.
 
-
 Templates as macros
 -------------------
 
 Templates are also available as METAL macros using the symbol
 ``macros`` which is available to all skin templates (it may be
 instantiated manually, too).
-     
+
 The ``macros`` object is tied to the current request; the context is
 the template context, if one does not explicitly provide one. The
 usage of the ``macros`` object is demonstrated below::
@@ -44,7 +43,6 @@ usage of the ``macros`` object is demonstrated below::
 
 As with all METAL macros, the macro slot functionality is available.
 
-
 Automatic detection of new templates
 ------------------------------------
 
@@ -53,7 +51,6 @@ registered. The way this works is that there's an event listener
 registered for the ``repoze.bfg.interfaces.INewRequest`` event such
 that directories are searched for new files before any application
 logic is run, prior to each request.
-
 
 Credits
 -------
