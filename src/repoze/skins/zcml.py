@@ -1,15 +1,13 @@
 import os
 
 from zope import component
-
-from zope.configuration import xmlconfig
-import zope.configuration.config
-
 from zope.component.zcml import handler
 from zope.component.interface import provideInterface
-from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.fields import GlobalObject, Path
+
+from zope.interface import implements
 from zope.interface import Interface
+
 from zope.schema import TextLine
 
 from webob import Response
@@ -18,10 +16,9 @@ from repoze.bfg.interfaces import IRequest
 from repoze.bfg.interfaces import INewRequest
 from repoze.bfg.interfaces import IViewPermission
 from repoze.bfg.interfaces import IView
-from repoze.bfg.path import package_path
+from repoze.bfg.interfaces import ISettings
+from repoze.bfg.template import get_template
 from repoze.bfg.security import ViewPermissionFactory
-
-from chameleon.zpt.template import PageTemplateFile
 
 from macros import Macros
 from interfaces import IMacro
@@ -34,24 +31,81 @@ def find_templates(path):
                 fullpath = os.path.join(dirpath, filename)
                 rel_path = fullpath[len(path)+1:]
                 name = os.path.splitext(rel_path.replace(os.path.sep, '.'))[0]
-                fullname = os.path.join(path, rel_path)
-                yield name, fullname, rel_path
+                yield name, fullpath
 
-def create_view_from_template(template):
-    def view(context, request):
-        macros = Macros(context, request)
-        result = template(
-            context=context, request=request, macros=macros)
-        return Response(result)
-    return view
+class TemplateViewFactory(object):
+    def __init__(self, template_name):
+        self.template_name = template_name
 
-def create_macro_from_template(template):
-    def macro(context, request):
-        return template.macros[""]
-    return macro
+    def __call__(self, context, request):
+        def view(context, request):
+            macros = Macros(context, request)
+            template = get_template(self.template_name)
+            result = template(context=context, request=request, macros=macros)
+            return Response(result)
+        return view(context, request)
+
+class TemplateMacroFactory(object):
+    def __init__(self, template_name):
+        self.template_name = template_name
+
+    def __call__(self, context, request):
+        def macro(context, request):
+            template = get_template(self.template_name)
+            return template.macros['']
+        return macro(context, request)
+
+class EventHandlerFactory(object):
+    def __init__(self, directory, for_, request_type, permission):
+        self.directory = directory
+        self.for_ = for_
+        self.permission = permission
+        self.request_type = request_type
+
+    def __call__(self, event):
+        settings = component.queryUtility(ISettings)
+        auto_reload = settings and settings.reload_templates
+        if not auto_reload:
+            return
+
+
+        class DummyContext(object):
+            if self.for_ is not None:
+                implements(self.for_)
+            else:
+                implements(Interface)
+
+        class DummyRequest(object):
+            implements(self.request_type)
+
+        context = DummyContext()
+        request = DummyRequest()
+
+        for name, fullpath in find_templates(self.directory):
+            view = component.queryMultiAdapter((context, request),
+                                               IView, name=name)
+            if view is None:
+                # permission
+                if self.permission:
+                    pfactory = ViewPermissionFactory(self.permission)
+                    component.registerAdapter(
+                            pfactory,
+                            (self.for_, self.request_type),
+                            IViewPermission,
+                            name)
+
+                # template as view
+                view = TemplateViewFactory(fullpath)
+                component.provideAdapter(
+                    view, (self.for_, self.request_type), IView, name)
+
+                # template as macro
+                macro = TemplateMacroFactory(fullpath)
+                component.provideAdapter(
+                    macro, (self.for_, self.request_type), IMacro, name)
 
 def templates(_context, directory, for_=None, request_type=IRequest,
-        permission=None):
+              permission=None):
     # provide interface
     if for_ is not None:
         _context.action(
@@ -60,39 +114,8 @@ def templates(_context, directory, for_=None, request_type=IRequest,
             args = ('', for_)
             )
 
-
-    # register an event-handler that searches directories for new
-    # templates
-    registry = {}
-
-    def make_template(path):
-        template = PageTemplateFile(path)
-        registry[path] = template
-        return template
-
-    def event_handler(new_request_event):
-        for name, fullpath, rel_path in find_templates(directory):
-            template = registry.get(fullpath)
-            if template is None:
-                template = make_template(fullpath)
-
-                # permission
-                if permission:
-                    pfactory = ViewPermissionFactory(permission)
-                    component.registerAdapter(
-                            pfactory,
-                            (for_, request_type),
-                            IViewPermission,
-                            name)
-
-                # template as view
-                view = create_view_from_template(template)
-                component.provideAdapter(view, (for_, request_type), IView, name)
-
-                # template as macro
-                macro = create_macro_from_template(template)
-                component.provideAdapter(macro, (for_, request_type), IMacro, name)
-
+    event_handler = EventHandlerFactory(directory, for_, request_type,
+                                        permission)
     _context.action(
         discriminator = ('registerHandler', id(event_handler), INewRequest),
         callable = handler,
@@ -100,12 +123,11 @@ def templates(_context, directory, for_=None, request_type=IRequest,
                 False),
         )
 
-    for name, fullpath, rel_path in find_templates(directory):
+    for name, fullpath in find_templates(directory):
         # the view name is given by the relative path where the path
         # separator is replaced by a dot '.' and the file extension
         # removed
-        template = make_template(fullpath)
-
+        
         # register permissions adapter if required
         if permission:
             pfactory = ViewPermissionFactory(permission)
@@ -119,7 +141,7 @@ def templates(_context, directory, for_=None, request_type=IRequest,
                 )
 
         # register template as view component
-        view = create_view_from_template(template)
+        view = TemplateViewFactory(fullpath)
         _context.action(
             discriminator = ('view', for_, name, request_type, IView),
             callable = handler,
@@ -129,7 +151,7 @@ def templates(_context, directory, for_=None, request_type=IRequest,
             )
 
         # register template as macro component
-        macro = create_macro_from_template(template)
+        macro = TemplateMacroFactory(fullpath)
         _context.action(
             discriminator = ('view', for_, name, request_type, IMacro),
             callable = handler,
