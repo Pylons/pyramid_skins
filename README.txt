@@ -7,25 +7,63 @@ both as views and template macros. It's compatible with the
 
 We'll refer to these templates as "skin templates".
 
+Including the ``repoze.skins`` ZCML
+----------------------------------
+
+Within your repoze.bfg application package, include the
+``repoze.skins`` ZCML registrations by modifying your application's
+``configure.zcml``.  Add the following ZCML to that file::
+
+  <include package="repoze.skins" file="meta.zcml"/>
+
 Templates as views
 ------------------
 
-Using the ZCML-directive ``<bfg:templates>`` we can register a
-directory with templates and make them available as view components,
-complete with security and adaptation::
+Once you've included the ``repoze.skins`` ZCML, you may use the
+ZCML directive ``<bfg:templates>`` to register a directory with
+templates and make them available as view components, complete with
+security and adaptation::
 
   <bfg:templates
-     for="some_specification"
-     layer="some_request_layer"
-     directory="templates"
-     permission="view" />
+     directory="templates"/>
 
-Each template located inside the directory becomes a view component
-and given a name based on the relative path to the template file
-(minus the extension, directory separators are replaced with a dot).
+The ``directory`` parameter indicates a package-relative path that
+should point at a filesystem directory containing ``chameleon.zpt``
+templates with the extension ``.pt``.  Each template located inside
+the directory (recursively) becomes a view component and given a name
+based on the relative path to the template file (minus the extension,
+directory separators are replaced with a dot).
 
 The skin template components are callables and return a WSGI response
 object.
+
+You can override which "request type" the skin is for by using the
+``request_type`` attribute::
+
+  <bfg:templates
+     request_type="mypackage.interfaces.MyRequestType"
+     directory="templates"/>
+
+See the `repoze.bfg view request type documentation
+<http://static.repoze.org/bfgdocs/narr/views.html#view-request-types>`_
+for more information on request types.
+
+If you want to protect your templates with a specific permission, you
+may as well by using the ``permission`` directive::
+
+  <bfg:templates
+     permission="view"
+     directory="templates"/>
+
+If you want the templates to only be displayed for specific context
+(model) types, use the for parameter::
+
+  <bfg:templates
+     for="myproject.models.MyModel"
+     directory="templates"/>
+
+The ``request_type``, ``permission`, and ``for`` parameters can be
+combined freely.
 
 Templates as macros
 -------------------
