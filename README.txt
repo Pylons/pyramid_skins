@@ -27,6 +27,7 @@ and given a name based on the relative path to the template file
 The skin template components are callables and return a WSGI response
 object.
 
+
 Templates as macros
 -------------------
 
@@ -42,6 +43,17 @@ usage of the ``macros`` object is demonstrated below::
    <div metal:use-macro="macros(some_context).thumbnail" />
 
 As with all METAL macros, the macro slot functionality is available.
+
+
+Automatic detection of new templates
+------------------------------------
+
+In debug-mode, skin templates are automatically picked up and
+registered. The way this works is that there's an event listener
+registered for the ``repoze.bfg.interfaces.INewRequest`` event such
+that directories are searched for new files before any application
+logic is run, prior to each request.
+
 
 Credits
 -------

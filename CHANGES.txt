@@ -1,0 +1,8 @@
+Changelog
+=========
+
+Head
+~~~~
+
+- Added support to dynamically register templates if they
+  are added to a registered template directory [seletz]

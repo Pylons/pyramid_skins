@@ -1,3 +1,5 @@
+import os
+
 import zope.interface
 import zope.component
 import zope.testing
@@ -11,18 +13,33 @@ import zope.component
 import zope.component.testing
 import zope.configuration.xmlconfig
 
+import repoze.skins
+
 import chameleon.zpt
 
 def setUp(suite):
     zope.component.testing.setUp(suite)
     zope.configuration.xmlconfig.XMLConfig('configure.zcml', chameleon.zpt)()
-    
+
+skins_path = repoze.skins.__path__[0]
+new_template_path = os.path.join(skins_path, "tests", "templates", "new.pt")
+
+def tearDown(suite):
+    try:
+        os.unlink(new_template_path)
+    except OSError:
+        pass
+    zope.component.testing.tearDown(suite)
+
 def test_suite():
     doctests = ("zcml.txt",)
-    globs = dict(
-        interface=zope.interface,
-        component=zope.component)
-    
+    globs = dict(interface=zope.interface,
+                 component=zope.component,
+                 path=skins_path,
+                 new_template_path=new_template_path,
+                 os=os)
+
+
     return unittest.TestSuite(
         [zope.testing.doctest.DocFileSuite(
                 doctest,

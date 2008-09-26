@@ -1,5 +1,7 @@
 import os
 
+from zope import component
+
 from zope.configuration import xmlconfig
 import zope.configuration.config
 
@@ -13,6 +15,7 @@ from zope.schema import TextLine
 from webob import Response
 
 from repoze.bfg.interfaces import IRequest
+from repoze.bfg.interfaces import INewRequest
 from repoze.bfg.interfaces import IViewPermission
 from repoze.bfg.interfaces import IView
 from repoze.bfg.path import package_path
@@ -29,7 +32,10 @@ def find_templates(path):
         for filename in filenames:
             if filename.endswith(".pt"):
                 fullpath = os.path.join(dirpath, filename)
-                yield fullpath[len(path)+1:]
+                rel_path = fullpath[len(path)+1:]
+                name = os.path.splitext(rel_path.replace(os.path.sep, '.'))[0]
+                fullname = os.path.join(path, rel_path)
+                yield name, fullname, rel_path
 
 def create_view_from_template(template):
     def view(context, request):
@@ -44,8 +50,8 @@ def create_macro_from_template(template):
         return template.macros[""]
     return macro
 
-def templates(_context, directory, for_=None,
-              request_type=IRequest, permission=None):
+def templates(_context, directory, for_=None, request_type=IRequest,
+        permission=None):
     # provide interface
     if for_ is not None:
         _context.action(
@@ -54,14 +60,47 @@ def templates(_context, directory, for_=None,
             args = ('', for_)
             )
 
-    for rel_path in find_templates(directory):
+
+    # register an event-handler that searches directories for new
+    # templates
+    registry = {}
+
+    def make_template(path):
+        template = PageTemplateFile(path)
+        registry[path] = template
+        return template
+
+    def event_handler(new_request_event):
+        for name, fullpath, rel_path in find_templates(directory):
+            template = registry.get(fullpath)
+            if template is None:
+                template = make_template(fullpath)
+
+                # permission
+                if permission:
+                    pfactory = ViewPermissionFactory(permission)
+                    component.registerAdapter(
+                            pfactory,
+                            (for_, request_type),
+                            IViewPermission,
+                            name)
+
+                # template as view
+                view = create_view_from_template(template)
+                component.provideAdapter(view, (for_, request_type), IView, name)
+
+                # template as macro
+                macro = create_macro_from_template(template)
+                component.provideAdapter(macro, (for_, request_type), IMacro, name)
+
+    component.provideHandler(event_handler, (INewRequest,))
+
+    for name, fullpath, rel_path in find_templates(directory):
         # the view name is given by the relative path where the path
         # separator is replaced by a dot '.' and the file extension
         # removed
-        fullpath = os.path.join(directory, rel_path)
-        name = os.path.splitext(rel_path.replace(os.path.sep, '.'))[0]
-        template = PageTemplateFile(fullpath)
-        
+        template = make_template(fullpath)
+
         # register permissions adapter if required
         if permission:
             pfactory = ViewPermissionFactory(permission)
