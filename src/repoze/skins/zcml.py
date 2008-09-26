@@ -1,5 +1,6 @@
 import os
 
+from zope import interface
 from zope import component
 from zope.component import getGlobalSiteManager
 from zope.component.zcml import handler
@@ -23,6 +24,7 @@ from repoze.bfg.security import ViewPermissionFactory
 
 from macros import Macros
 from interfaces import IMacro
+from interfaces import ISkinTemplate
 
 def find_templates(path):
     os.lstat(path)
@@ -35,16 +37,15 @@ def find_templates(path):
                 yield name, fullpath
 
 class TemplateViewFactory(object):
-    def __init__(self, template_name):
-        self.template_name = template_name
+    interface.implements(ISkinTemplate)
+    def __init__(self, path):
+        self.template = get_template(path)
+        self.path = path
 
     def __call__(self, context, request):
-        def view(context, request):
-            macros = Macros(context, request)
-            template = get_template(self.template_name)
-            result = template(context=context, request=request, macros=macros)
-            return Response(result)
-        return view(context, request)
+        macros = Macros(context, request)
+        result = self.template(context=context, request=request, macros=macros)
+        return Response(result)
 
 class TemplateMacroFactory(object):
     def __init__(self, template_name):
