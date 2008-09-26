@@ -46,7 +46,7 @@ def test_suite():
                 optionflags=OPTIONFLAGS,
                 setUp=setUp,
                 globs=globs,
-                tearDown=zope.component.testing.tearDown,
+                tearDown=tearDown,
                 package="repoze.skins") for doctest in doctests]
         )
 

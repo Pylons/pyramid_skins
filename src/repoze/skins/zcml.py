@@ -1,6 +1,7 @@
 import os
 
 from zope import component
+from zope.component import getGlobalSiteManager
 from zope.component.zcml import handler
 from zope.component.interface import provideInterface
 from zope.configuration.fields import GlobalObject, Path
@@ -68,22 +69,10 @@ class EventHandlerFactory(object):
         if not auto_reload:
             return
 
-
-        class DummyContext(object):
-            if self.for_ is not None:
-                implements(self.for_)
-            else:
-                implements(Interface)
-
-        class DummyRequest(object):
-            implements(self.request_type)
-
-        context = DummyContext()
-        request = DummyRequest()
-
+        gsm = getGlobalSiteManager()
         for name, fullpath in find_templates(self.directory):
-            view = component.queryMultiAdapter((context, request),
-                                               IView, name=name)
+            view = gsm.adapters.lookup(
+                    (self.for_ or Interface, self.request_type), IView, name)
             if view is None:
                 # permission
                 if self.permission:

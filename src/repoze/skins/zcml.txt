@@ -65,6 +65,14 @@ directory, the ZCML directive also registers a event subscriber which adds
 templates it discovers to a registry.  We won't test that directly, but rather
 test the behavior we want.
 
+This is only working if the settings have auto_reload set to "true".
+
+  >>> from repoze.bfg.interfaces import ISettings
+  >>> class MockSettings(object):
+  ...     interface.implements(ISettings)
+  ...     reload_templates = True
+  >>> component.provideUtility(MockSettings())
+
 Create a template in the path we register above:
 
   >>> new_template_path.endswith("new.pt")

@@ -1,8 +1,21 @@
 Changelog
 =========
 
+
 Head
 ~~~~
 
+- Fixed bug where the INewRequest event handler would call
+  templates when checking for their existence [seletz]
+
+- Fixed a bug where we did not tear down the tests correctly [seletz]
+
+
+0.1 (2008-09-25)
+~~~~~~~~~~~~~~~~
+
+- Initial release [malthe]
+
 - Added support to dynamically register templates if they
   are added to a registered template directory [seletz]
+
