@@ -6,8 +6,8 @@ ZCML directives
 
 Load meta configuration.
   
-  >>> import repoze.skins
-  >>> XMLConfig('meta.zcml', repoze.skins)()
+  >>> import repoze.bfg.skins
+  >>> XMLConfig('meta.zcml', repoze.bfg.skins)()
 
 To keep the examples simple, we define a ZCML-template.
   
@@ -106,7 +106,7 @@ The template should now be available:
 Template API
 ------------
 
-  >>> from repoze.skins.interfaces import IApi
+  >>> from repoze.bfg.skins.interfaces import IApi
 
 The following mock method will let us verify that templates can access
 API components.

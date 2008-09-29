@@ -1,27 +1,26 @@
 Overview
 ========
 
-``repoze.skins`` provides component-based templates that may be used
+``repoze.bfg.skins`` provides component-based templates that may be used
 both as views and template macros. It's compatible with the
 ``repoze.bfg`` framework.
 
 We'll refer to these templates as "skin templates".
 
-
-Including the ``repoze.skins`` ZCML
-----------------------------------
+Including the ``repoze.bfg.skins`` ZCML
+---------------------------------------
 
 Within your repoze.bfg application package, include the
-``repoze.skins`` ZCML registrations by modifying your application's
+``repoze.bfg.skins`` ZCML registrations by modifying your application's
 ``configure.zcml``.  Add the following ZCML to that file::
 
-  <include package="repoze.skins" file="meta.zcml"/>
+  <include package="repoze.bfg.skins" file="meta.zcml"/>
 
-  
+
 Templates as views
 ------------------
 
-Once you've included the ``repoze.skins`` ZCML, you may use the
+Once you've included the ``repoze.bfg.skins`` ZCML, you may use the
 ZCML directive ``<bfg:templates>`` to register a directory with
 templates and make them available as view components, complete with
 security and adaptation::
@@ -90,7 +89,7 @@ Template API support
 
 To aid template designers, applications and libraries can make APIs
 available to templates. Simply register a named component for the
-``repoze.skins.interfaces.IApi`` interface that adapts on (context,
+``repoze.bfg.skins.interfaces.IApi`` interface that adapts on (context,
 request).
 
 In the template, get the api by using the ``api`` symbol:

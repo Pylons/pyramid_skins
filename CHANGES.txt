@@ -5,6 +5,8 @@ Changelog
 Head
 ~~~~
 
+- renamed package to ``repoze.bfg.skins`` [seletz]
+
 - Added logic to allow registering and acquiring template API
   components from templates. [malthe]
 

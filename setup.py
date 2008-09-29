@@ -18,7 +18,7 @@ from setuptools import setup, find_packages, Extension
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-setup(name='repoze.skins',
+setup(name='repoze.bfg.skins',
       version = '0.1',
       description='Skin templates for repoze.bfg',
       long_description=read('README.txt'),

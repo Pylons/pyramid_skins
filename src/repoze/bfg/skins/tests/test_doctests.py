@@ -13,7 +13,7 @@ import zope.component
 import zope.component.testing
 import zope.configuration.xmlconfig
 
-import repoze.skins
+import repoze.bfg.skins
 
 import chameleon.zpt
 
@@ -21,7 +21,7 @@ def setUp(suite):
     zope.component.testing.setUp(suite)
     zope.configuration.xmlconfig.XMLConfig('configure.zcml', chameleon.zpt)()
 
-skins_path = repoze.skins.__path__[0]
+skins_path = repoze.bfg.skins.__path__[0]
 new_template_path = os.path.join(skins_path, "tests", "templates", "new.pt")
 
 def tearDown(suite):
@@ -47,7 +47,7 @@ def test_suite():
                 setUp=setUp,
                 globs=globs,
                 tearDown=tearDown,
-                package="repoze.skins") for doctest in doctests]
+                package="repoze.bfg.skins") for doctest in doctests]
         )
 
 if __name__ == '__main__':
