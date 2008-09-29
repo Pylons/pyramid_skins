@@ -57,6 +57,25 @@ registered with the component architecture.
     <span>world!</span>
   </html>
 
+We can adapt to the ``ISkinTemplate`` which provides additional
+rendering options.
+  
+  >>> from repoze.bfg.skins import get_skin_template
+  >>> template = get_skin_template(context, request, u"hello")
+
+We can get the path to the template.
+  
+  >>> template.path
+  u'.../tests/templates/hello.pt'
+  
+Or render it to a unicode string.
+  
+  >>> print template.render(context, request)
+  <html>
+    <span>Hello,</span>
+    <span>world!</span>
+  </html>
+
 Template Registry
 -----------------
 

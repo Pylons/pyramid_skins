@@ -17,7 +17,6 @@ from webob import Response
 from repoze.bfg.interfaces import IRequest
 from repoze.bfg.interfaces import INewRequest
 from repoze.bfg.interfaces import IViewPermission
-from repoze.bfg.interfaces import IView
 from repoze.bfg.interfaces import ISettings
 from repoze.bfg.template import get_template
 from repoze.bfg.security import ViewPermissionFactory
@@ -39,16 +38,20 @@ def find_templates(path):
 
 class TemplateViewFactory(object):
     interface.implements(ISkinTemplate)
+    
     def __init__(self, path):
         self.template = get_template(path)
         self.path = path
 
     def __call__(self, context, request):
+        result = self.render(context, request)
+        return Response(result)
+
+    def render(self, context, request):
         macros = Macros(context, request)
         api = Api(context, request)
-        result = self.template(
+        return self.template(
             context=context, request=request, macros=macros, api=api)
-        return Response(result)
 
 class TemplateMacroFactory(object):
     def __init__(self, template_name):
@@ -76,7 +79,7 @@ class EventHandlerFactory(object):
         gsm = getGlobalSiteManager()
         for name, fullpath in find_templates(self.directory):
             view = gsm.adapters.lookup(
-                    (self.for_ or Interface, self.request_type), IView, name)
+                    (self.for_ or Interface, self.request_type), ISkinTemplate, name)
             if view is None:
                 # permission
                 if self.permission:
@@ -90,7 +93,7 @@ class EventHandlerFactory(object):
                 # template as view
                 view = TemplateViewFactory(fullpath)
                 component.provideAdapter(
-                    view, (self.for_, self.request_type), IView, name)
+                    view, (self.for_, self.request_type), ISkinTemplate, name)
 
                 # template as macro
                 macro = TemplateMacroFactory(fullpath)
@@ -136,10 +139,10 @@ def templates(_context, directory, for_=None, request_type=IRequest,
         # register template as view component
         view = TemplateViewFactory(fullpath)
         _context.action(
-            discriminator = ('view', for_, name, request_type, IView),
+            discriminator = ('view', for_, name, request_type, ISkinTemplate),
             callable = handler,
             args = ('registerAdapter',
-                    view, (for_, request_type), IView, name,
+                    view, (for_, request_type), ISkinTemplate, name,
                     _context.info),
             )
 

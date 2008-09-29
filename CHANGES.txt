@@ -5,7 +5,10 @@ Changelog
 Head
 ~~~~
 
-- renamed package to ``repoze.bfg.skins`` [seletz]
+- Added ``render`` method to skin template class to allow rendering to
+  a string instead of to a WebOb response. [malthe]
+
+- Renamed package to ``repoze.bfg.skins`` [seletz]
 
 - Added logic to allow registering and acquiring template API
   components from templates. [malthe]

@@ -20,3 +20,7 @@ class ISkinTemplate(IView):
     template file, e.g. metadata or additional resources. An example
     could be a title and a description, or a icon that gives a visual
     representation for the template.""")
+
+    def render(context, request):
+        """Render the template and return a unicode string (as opposed
+        to a WebOb response)."""
