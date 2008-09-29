@@ -7,6 +7,7 @@ both as views and template macros. It's compatible with the
 
 We'll refer to these templates as "skin templates".
 
+
 Including the ``repoze.skins`` ZCML
 ----------------------------------
 
@@ -16,6 +17,7 @@ Within your repoze.bfg application package, include the
 
   <include package="repoze.skins" file="meta.zcml"/>
 
+  
 Templates as views
 ------------------
 
@@ -65,6 +67,7 @@ If you want the templates to only be displayed for specific context
 The ``request_type``, ``permission`, and ``for`` parameters can be
 combined freely.
 
+
 Templates as macros
 -------------------
 
@@ -81,6 +84,22 @@ usage of the ``macros`` object is demonstrated below::
 
 As with all METAL macros, the macro slot functionality is available.
 
+
+Template API support
+--------------------
+
+To aid template designers, applications and libraries can make APIs
+available to templates. Simply register a named component for the
+``repoze.skins.interfaces.IApi`` interface that adapts on (context,
+request).
+
+In the template, get the api by using the ``api`` symbol:
+
+  <div tal:define="my_api api.my_api" />
+
+The ``api`` symbol is available to all skin templates.
+
+
 Automatic detection of new templates
 ------------------------------------
 
@@ -89,6 +108,7 @@ registered. The way this works is that there's an event listener
 registered for the ``repoze.bfg.interfaces.INewRequest`` event such
 that directories are searched for new files before any application
 logic is run, prior to each request.
+
 
 Credits
 -------

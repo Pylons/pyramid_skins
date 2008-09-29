@@ -23,6 +23,7 @@ from repoze.bfg.template import get_template
 from repoze.bfg.security import ViewPermissionFactory
 
 from macros import Macros
+from api import Api
 from interfaces import IMacro
 from interfaces import ISkinTemplate
 
@@ -44,7 +45,9 @@ class TemplateViewFactory(object):
 
     def __call__(self, context, request):
         macros = Macros(context, request)
-        result = self.template(context=context, request=request, macros=macros)
+        api = Api(context, request)
+        result = self.template(
+            context=context, request=request, macros=macros, api=api)
         return Response(result)
 
 class TemplateMacroFactory(object):

@@ -5,6 +5,9 @@ Changelog
 Head
 ~~~~
 
+- Added logic to allow registering and acquiring template API
+  components from templates. [malthe]
+
 - Changed the Skin Template View to be a class, and added a minimal
   interface ISkinTemplate to access the template path [seletz]
 

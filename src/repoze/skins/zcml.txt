@@ -102,3 +102,28 @@ The template should now be available:
     <span>Hello,</span>
     <span>world!</span>
   </html>
+
+Template API
+------------
+
+  >>> from repoze.skins.interfaces import IApi
+
+The following mock method will let us verify that templates can access
+API components.
+  
+  >>> def mock_api(context, request): return repr(context)
+  
+  >>> component.provideAdapter(
+  ...     mock_api, (Context, IRequest), IApi, name="test")
+
+  >>> print component.getMultiAdapter(
+  ...    (context, request), IView, name=u"api")
+  200 OK
+  content-type: text/html; charset=UTF-8
+  Content-Length: ...
+  <BLANKLINE>
+  <html>
+    Hello, <Context object at ...>!
+  </html>
+  <BLANKLINE>
+
