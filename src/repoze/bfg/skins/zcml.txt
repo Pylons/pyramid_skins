@@ -34,7 +34,7 @@ Let's set up a context and test request.
 
   >>> from repoze.bfg.interfaces import IRequest
   >>> from webob import Request
-  >>> request = Request({})
+  >>> request = Request.blank("")
   >>> interface.alsoProvides(request, IRequest)
 
   >>> class Context(object):
@@ -126,14 +126,15 @@ Template API
 ------------
 
   >>> from repoze.bfg.skins.interfaces import IApi
+  >>> from repoze.bfg.skins.interfaces import ISkinTemplate
 
 The following mock method will let us verify that templates can access
 API components.
   
-  >>> def mock_api(context, request): return repr(context)
+  >>> def mock_api(context, request, template): return repr(context)
   
   >>> component.provideAdapter(
-  ...     mock_api, (Context, IRequest), IApi, name="test")
+  ...     mock_api, (Context, IRequest, ISkinTemplate), IApi, name="test")
 
   >>> print component.getMultiAdapter(
   ...    (context, request), IView, name=u"api")

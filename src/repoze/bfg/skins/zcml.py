@@ -49,7 +49,7 @@ class TemplateViewFactory(object):
 
     def render(self, context, request):
         macros = Macros(context, request)
-        api = Api(context, request)
+        api = Api(context, request, self)
         return self.template(
             context=context, request=request, macros=macros, api=api)
 

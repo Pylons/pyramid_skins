@@ -5,6 +5,11 @@ Changelog
 Head
 ~~~~
 
+- Template API components should adapt (context, request, template),
+  where ``template`` is the skin template object (such an API might
+  need to provide access to the template file itself, in order to get
+  a path to resources local to the template). [malthe]
+
 - Added ``render`` method to skin template class to allow rendering to
   a string instead of to a WebOb response. [malthe]
 
