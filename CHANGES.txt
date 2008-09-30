@@ -5,6 +5,8 @@ Changelog
 Head
 ~~~~
 
+- Added Template API base class. [malthe]
+
 - Renamed ``IApi`` to ``ITemplateAPI``. [malthe]
 
 - Template API components should adapt (context, request, template),

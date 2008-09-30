@@ -1,4 +1,6 @@
+from zope import interface
 from zope import component
+
 from interfaces import ITemplateAPI
 
 class Api(object):
@@ -13,3 +15,13 @@ class Api(object):
             
     def __call__(self, context):
         return Api(context, self.request, self.template)
+
+class TemplateAPI(object):
+    """Base class."""
+    
+    interface.implements(ITemplateAPI)
+    
+    def __init__(self, context, request, template):
+        self.context = context
+        self.request = request
+        self.template = template
