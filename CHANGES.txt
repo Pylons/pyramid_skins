@@ -5,6 +5,8 @@ Changelog
 Head
 ~~~~
 
+- Renamed ``IApi`` to ``ITemplateAPI``. [malthe]
+
 - Template API components should adapt (context, request, template),
   where ``template`` is the skin template object (such an API might
   need to provide access to the template file itself, in order to get

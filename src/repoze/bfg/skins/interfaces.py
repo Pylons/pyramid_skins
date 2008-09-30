@@ -6,7 +6,7 @@ class IMacro(interface.Interface):
     """Macros API available to templates. Access skin template macros
     by name using attribute access, e.g. ``macros.my_template_name``."""
 
-class IApi(interface.Interface):
+class ITemplateAPI(interface.Interface):
     """An application programming interface available to
     templates. Register as a named component that adapts on (context,
     request)."""

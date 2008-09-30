@@ -1,5 +1,5 @@
 from zope import component
-from interfaces import IApi
+from interfaces import ITemplateAPI
 
 class Api(object):
     def __init__(self, context, request, template):
@@ -9,7 +9,7 @@ class Api(object):
         
     def __getattr__(self, name):
         return component.getMultiAdapter(
-            (self.context, self.request, self.template), IApi, name=name)
+            (self.context, self.request, self.template), ITemplateAPI, name=name)
             
     def __call__(self, context):
         return Api(context, self.request, self.template)
