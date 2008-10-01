@@ -33,7 +33,7 @@ def find_templates(path):
             if filename.endswith(".pt"):
                 fullpath = os.path.join(dirpath, filename)
                 rel_path = fullpath[len(path)+1:]
-                name = os.path.splitext(rel_path.replace(os.path.sep, '.'))[0]
+                name = os.path.splitext(rel_path.replace(os.path.sep, '/'))[0]
                 yield name, fullpath
 
 class TemplateViewFactory(object):

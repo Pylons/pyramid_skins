@@ -5,6 +5,11 @@ Changelog
 Head
 ~~~~
 
+- Templates located in subdirectories are now named by replacing the
+  operating system path separator with a forward slash symbol (often
+  this will be the same character); before a dot '.' was
+  used. [malthe]
+
 - Added Template API base class. [malthe]
 
 - Renamed ``IApi`` to ``ITemplateAPI``. [malthe]
