@@ -18,7 +18,7 @@ from repoze.bfg.interfaces import IRequest
 from repoze.bfg.interfaces import INewRequest
 from repoze.bfg.interfaces import IViewPermission
 from repoze.bfg.interfaces import ISettings
-from repoze.bfg.template import get_template
+from repoze.bfg.chameleon_zpt import get_template
 from repoze.bfg.security import ViewPermissionFactory
 
 from macros import Macros
