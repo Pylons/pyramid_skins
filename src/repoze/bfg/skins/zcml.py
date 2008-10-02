@@ -79,7 +79,8 @@ class EventHandlerFactory(object):
         gsm = getGlobalSiteManager()
         for name, fullpath in find_templates(self.directory):
             view = gsm.adapters.lookup(
-                    (self.for_ or Interface, self.request_type), ISkinTemplate, name)
+                    (interface.implementedBy(self.for_) or Interface,
+                     self.request_type), ISkinTemplate, name)
             if view is None:
                 # permission
                 if self.permission:
