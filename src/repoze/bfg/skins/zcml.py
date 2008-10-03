@@ -59,8 +59,11 @@ class TemplateMacroFactory(object):
 
     def __call__(self, context, request):
         def macro(context, request):
-            template = get_template(self.template_name)
-            return template.macros['']
+            skin_template = TemplateViewFactory(self.template_name)
+            template = skin_template.template
+            api = Api(context, request, skin_template)
+            return template.macros.bind(
+                context=context, request=request, api=api)[""]
         return macro(context, request)
 
 class EventHandlerFactory(object):

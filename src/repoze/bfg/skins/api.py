@@ -1,7 +1,10 @@
 from zope import interface
 from zope import component
 
+from repoze.bfg.interfaces import IRequest
+
 from interfaces import ITemplateAPI
+from interfaces import ISkinTemplate
 
 class Api(object):
     def __init__(self, context, request, template):
@@ -20,6 +23,7 @@ class TemplateAPI(object):
     """Base class."""
     
     interface.implements(ITemplateAPI)
+    component.adapts(interface.Interface, IRequest, ISkinTemplate)
     
     def __init__(self, context, request, template):
         self.context = context
