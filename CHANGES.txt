@@ -5,6 +5,9 @@ Changelog
 Head
 ~~~~
 
+0.2 (2008-10-03)
+~~~~~~~~~~~~~~~~
+
 - Templates located in subdirectories are now named by replacing the
   operating system path separator with a forward slash symbol (often
   this will be the same character); before a dot '.' was
