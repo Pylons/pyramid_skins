@@ -5,6 +5,8 @@ Changelog
 Head
 ~~~~
 
+- Instantiate page template directly. [malthe]
+
 0.2 (2008-10-03)
 ~~~~~~~~~~~~~~~~
 

@@ -18,8 +18,9 @@ from repoze.bfg.interfaces import IRequest
 from repoze.bfg.interfaces import INewRequest
 from repoze.bfg.interfaces import IViewPermission
 from repoze.bfg.interfaces import ISettings
-from repoze.bfg.chameleon_zpt import get_template
 from repoze.bfg.security import ViewPermissionFactory
+
+from chameleon.zpt.template import PageTemplateFile
 
 from macros import Macros
 from api import Api
@@ -40,7 +41,7 @@ class TemplateViewFactory(object):
     interface.implements(ISkinTemplate)
     
     def __init__(self, path):
-        self.template = get_template(path)
+        self.template = PageTemplateFile(path)
         self.path = path
 
     def __call__(self, context, request):
