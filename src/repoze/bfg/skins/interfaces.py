@@ -11,8 +11,8 @@ class ITemplateAPI(interface.Interface):
     templates. Register as a named component that adapts on (context,
     request)."""
     
-class ISkinTemplate(IView):
-    """Skin template view."""
+class ISkinTemplate(interface.Interface):
+    """Skin template."""
     
     path = interface.Attribute(
         """Full path to the template. This attribute is available to

@@ -64,10 +64,11 @@ class TemplateMacroFactory(object):
         return macro(context, request)
 
 class EventHandlerFactory(object):
-    def __init__(self, directory, for_, request_type, permission):
+    def __init__(self, directory, for_, provides, request_type, permission):
         self.directory = directory
         self.for_ = for_
         self.permission = permission
+        self.provides = provides
         self.request_type = request_type
 
     def __call__(self, event):
@@ -83,7 +84,7 @@ class EventHandlerFactory(object):
                 iface = interface.implementedBy(iface)
                 
             view = gsm.adapters.lookup(
-                    (iface, self.request_type), ISkinTemplate, name)
+                    (iface, self.request_type), self.provides, name)
             if view is None:
                 # permission
                 if self.permission:
@@ -97,15 +98,15 @@ class EventHandlerFactory(object):
                 # template as view
                 view = TemplateViewFactory(fullpath)
                 component.provideAdapter(
-                    view, (self.for_, self.request_type), ISkinTemplate, name)
+                    view, (self.for_, self.request_type), self.provides, name)
 
                 # template as macro
                 macro = TemplateMacroFactory(fullpath)
                 component.provideAdapter(
                     macro, (self.for_, self.request_type), IMacro, name)
 
-def templates(_context, directory, for_=None, request_type=IRequest,
-              permission=None):
+def templates(_context, directory, for_=None, provides=interface.Interface,
+              request_type=IRequest, permission=None):
     # provide interface
     if for_ is not None:
         _context.action(
@@ -114,8 +115,13 @@ def templates(_context, directory, for_=None, request_type=IRequest,
             args = ('', for_)
             )
 
-    event_handler = EventHandlerFactory(directory, for_, request_type,
-                                        permission)
+    class _ISkinTemplate(provides, ISkinTemplate):
+        """Dynamically created interface which provides ``%s`` in
+        addition to ``ISkinTemplate``.""" % provides.__name__
+        
+    event_handler = EventHandlerFactory(
+        directory, for_, _ISkinTemplate, request_type, permission)
+    
     _context.action(
         discriminator = ('registerHandler', id(event_handler), INewRequest),
         callable = handler,
@@ -143,10 +149,10 @@ def templates(_context, directory, for_=None, request_type=IRequest,
         # register template as view component
         view = TemplateViewFactory(fullpath)
         _context.action(
-            discriminator = ('view', for_, name, request_type, ISkinTemplate),
+            discriminator = ('view', for_, name, request_type, _ISkinTemplate),
             callable = handler,
             args = ('registerAdapter',
-                    view, (for_, request_type), ISkinTemplate, name,
+                    view, (for_, request_type), _ISkinTemplate, name,
                     _context.info),
             )
 
@@ -171,6 +177,12 @@ class ITemplatesDirective(interface.Interface):
     for_ = GlobalObject(
         title=u"The interface or class the view templates are for.",
         required=False
+        )
+
+    provides = GlobalObject(
+        title=(u"The interface which the template components should "
+               u"additionally provide."),
+        required=False,
         )
 
     request_type = GlobalObject(

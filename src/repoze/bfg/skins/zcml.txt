@@ -27,6 +27,7 @@ and any request type.
 
   >>> xmlconfig(StringIO(template % ("""\
   ...   <bfg:templates
+  ...     provides="repoze.bfg.interfaces.IView"
   ...     directory="%s/tests/templates"
   ...   />""" % path)))
 

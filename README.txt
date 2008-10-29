@@ -1,24 +1,25 @@
 Overview
 ========
 
-``repoze.bfg.skins`` provides component-based templates that may be used
-both as views and template macros. It's compatible with the
-``repoze.bfg`` framework.
+``repoze.bfg.skins`` provides a framework to register file-system page
+templates (ZPT) as components; we'll refer to these templates as "skin
+templates".
 
-We'll refer to these templates as "skin templates".
+Templates registered using this framework double as template macros in
+the sense that a mechanism is exposed to easily look up and render a
+skin template as a macro from inside a template.
 
-Including the ``repoze.bfg.skins`` ZCML
----------------------------------------
+Package configuration
+---------------------
 
-Within your repoze.bfg application package, include the
-``repoze.bfg.skins`` ZCML registrations by modifying your application's
-``configure.zcml``.  Add the following ZCML to that file::
+Within your repoze.bfg application package, include the ZCML
+configuration by adding the following statement to your
+project's ``configure.zcml`` file::
 
   <include package="repoze.bfg.skins" file="meta.zcml"/>
 
-
-Templates as views
-------------------
+Registering templates
+---------------------
 
 Once you've included the ``repoze.bfg.skins`` ZCML, you may use the
 ZCML directive ``<bfg:templates>`` to register a directory with
@@ -31,12 +32,19 @@ security and adaptation::
 The ``directory`` parameter indicates a package-relative path that
 should point at a filesystem directory containing ``chameleon.zpt``
 templates with the extension ``.pt``.  Each template located inside
-the directory (recursively) becomes a view component and given a name
-based on the relative path to the template file (minus the extension,
-directory separators are replaced with a dot).
+the directory (recursively) becomes a component with a name based on
+the relative path to the template file (minus the extension, directory
+separators are replaced with a dot).
 
-The skin template components are callables and return a WSGI response
-object.
+Note that templates will only be available as traversable views if you
+explicitly name the ``IView`` interface::
+
+  <bfg:templates
+     provides="repoze.bfg.interfaces.IView"
+     directory="templates"/>
+     
+Skin template components are callables and return a WSGI response
+object (like all ``repoze.bfg`` views).
 
 You can override which "request type" the skin is for by using the
 ``request_type`` attribute::
@@ -63,12 +71,11 @@ If you want the templates to only be displayed for specific context
      for="myproject.models.MyModel"
      directory="templates"/>
 
-The ``request_type``, ``permission`, and ``for`` parameters can be
-combined freely.
+The ``provides``, ``request_type``, ``permission`, and ``for``
+parameters are all optional.
 
-
-Templates as macros
--------------------
+Macro support
+-------------
 
 Templates are also available as METAL macros using the symbol
 ``macros`` which is available to all skin templates (it may be
@@ -81,26 +88,34 @@ usage of the ``macros`` object is demonstrated below::
    <div metal:use-macro="macros.thumbnail" />
    <div metal:use-macro="macros(some_context).thumbnail" />
 
-As with all METAL macros, the macro slot functionality is available.
+A more elaborate example demonstrating macro slot support::
 
+   <div metal:use-macro="macros.thumbnail">
+      <span metal:fill-slot="label">
+         This is a thumbnail
+      <span>
+   </div>
 
-Template API support
---------------------
+Providing custom template APIs 
+------------------------------
 
 To aid template designers, applications and libraries can make APIs
 available to templates. Simply register a named component for the
-``repoze.bfg.skins.interfaces.IApi`` interface that adapts on (context,
-request).
+``ITemplateAPI`` interface that adapts on (context, request,
+template). A base class is provide for convenience.
 
-In the template, get the api by using the ``api`` symbol:
+To look up a template API, simply use attribute-access on the ``api``
+symbol.
 
-  <div tal:define="my_api api.my_api" />
+  <div tal:define="my_custom_api api.my_custom_api" />
 
-The ``api`` symbol is available to all skin templates.
+Note that by default, the ``api`` symbol is available to skin
+templates only; to access the symbol in a standard page template, you
+must manually instantiate the class and provide it by keyword
+argument.
 
-
-Automatic detection of new templates
-------------------------------------
+Automatic detection of new template files
+-----------------------------------------
 
 In debug-mode, skin templates are automatically picked up and
 registered. The way this works is that there's an event listener
@@ -108,11 +123,11 @@ registered for the ``repoze.bfg.interfaces.INewRequest`` event such
 that directories are searched for new files before any application
 logic is run, prior to each request.
 
-
 Credits
 -------
 
-This package was put together by Malte Borch <mborch@gmail.com>. To
-contribute to development or for support, please visit either #repoze
-on freenode irc.
+This software is developed by Malthe Borch <mborch@gmail.com>. To
+contribute to development or get support, please visit the #repoze
+channel on freenode irc or write the mailinglist.
+
 
