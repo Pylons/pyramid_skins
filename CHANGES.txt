@@ -5,6 +5,11 @@ Changelog
 Head
 ~~~~
 
+- Fix performance issue where template objects would be instantiated
+  at every call. [malthe]
+
+- Pass keyword arguments to skin template callable. [malthe]
+
 - Instantiate page template directly. [malthe]
 
 0.2 (2008-10-03)

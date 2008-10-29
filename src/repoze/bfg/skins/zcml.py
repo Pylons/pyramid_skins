@@ -7,9 +7,6 @@ from zope.component.zcml import handler
 from zope.component.interface import provideInterface
 from zope.configuration.fields import GlobalObject, Path
 
-from zope.interface import implements
-from zope.interface import Interface
-
 from zope.schema import TextLine
 
 from webob import Response
@@ -44,25 +41,24 @@ class TemplateViewFactory(object):
         self.template = PageTemplateFile(path)
         self.path = path
 
-    def __call__(self, context, request):
-        result = self.render(context, request)
+    def __call__(self, context, request, **kwargs):
+        result = self.render(context, request, **kwargs)
         return Response(result)
 
-    def render(self, context, request):
+    def render(self, context, request, **kwargs):
         macros = Macros(context, request)
         api = Api(context, request, self)
         return self.template(
-            context=context, request=request, macros=macros, api=api)
+            context=context, request=request, macros=macros, api=api, **kwargs)
 
 class TemplateMacroFactory(object):
     def __init__(self, template_name):
-        self.template_name = template_name
-
+        self.skin_template = TemplateViewFactory(template_name)
+        
     def __call__(self, context, request):
         def macro(context, request):
-            skin_template = TemplateViewFactory(self.template_name)
-            template = skin_template.template
-            api = Api(context, request, skin_template)
+            template = self.skin_template.template
+            api = Api(context, request, self.skin_template)
             return template.macros.bind(
                 context=context, request=request, api=api)[""]
         return macro(context, request)
@@ -82,9 +78,12 @@ class EventHandlerFactory(object):
 
         gsm = getGlobalSiteManager()
         for name, fullpath in find_templates(self.directory):
+            iface = self.for_ or interface.Interface
+            if type(iface) is not interface.interface.InterfaceClass:
+                iface = interface.implementedBy(iface)
+                
             view = gsm.adapters.lookup(
-                    (interface.implementedBy(self.for_) or Interface,
-                     self.request_type), ISkinTemplate, name)
+                    (iface, self.request_type), ISkinTemplate, name)
             if view is None:
                 # permission
                 if self.permission:
@@ -161,7 +160,7 @@ def templates(_context, directory, for_=None, request_type=IRequest,
                     _context.info),
             )
         
-class ITemplatesDirective(Interface):
+class ITemplatesDirective(interface.Interface):
     directory = Path(
         title=u"Directory",
         description=u"""
