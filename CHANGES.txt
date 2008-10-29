@@ -5,6 +5,9 @@ Changelog
 Head
 ~~~~
 
+0.3 (2008-10-29)
+~~~~~~~~~~~~~~~~
+
 - Fix performance issue where template objects would be instantiated
   at every call. [malthe]
 
