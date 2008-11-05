@@ -39,6 +39,7 @@ class TemplateViewFactory(object):
     
     def __init__(self, path):
         self.template = PageTemplateFile(path)
+        self.name, ext = os.path.splitext(os.path.basename(path))
         self.path = path
 
     def __call__(self, context, request, **kwargs):

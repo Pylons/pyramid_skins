@@ -5,6 +5,8 @@ Changelog
 Head
 ~~~~
 
+- Added ``name`` attribute to skin template interface. [malthe]
+
 - No longer provide ``repoze.bfg.interfaces.IView`` by default; the
   ``provides`` attribute may now be used to specify an additional
   interface which the skin templates will provide. [malthe]

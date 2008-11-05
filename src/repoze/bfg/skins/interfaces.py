@@ -13,6 +13,10 @@ class ITemplateAPI(interface.Interface):
     
 class ISkinTemplate(interface.Interface):
     """Skin template."""
+
+    name = interface.Attribute(
+        """Component name; this is the template file basename without
+        extension.""")
     
     path = interface.Attribute(
         """Full path to the template. This attribute is available to
