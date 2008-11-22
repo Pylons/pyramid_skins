@@ -5,6 +5,10 @@ Changelog
 Head
 ~~~~
 
+- Added render_skin_template_to_response and render_skin_template
+  methods for general template rendering. [fairwinds]
+
+
 0.4 (2008-11-13)
 ~~~~~~~~~~~~~~~~
 
