@@ -2,22 +2,16 @@ from zope import interface
 
 from repoze.bfg.interfaces import IView
 
-class IMacro(interface.Interface):
-    """Macros API available to templates. Access skin template macros
-    by name using attribute access, e.g. ``macros.my_template_name``."""
-
-class ITemplateAPI(interface.Interface):
-    """An application programming interface available to
-    templates. Register as a named component that adapts on (context,
-    request)."""
-    
 class ISkinTemplate(interface.Interface):
-    """Skin template."""
+    """Skin templates are page templates which reside in a skin
+    directory. These are registered as named components adapting on
+    (context, request)."""
 
     name = interface.Attribute(
-        """Component name; this is the template file basename without
-        extension.""")
-    
+        """This is the basename of the template filename relative to
+        the skin directory. Note that the OS-level path separator
+        character is replaced with a forward slash ('/').""")
+
     path = interface.Attribute(
         """Full path to the template. This attribute is available to
     allow applications to get a reference to files that relate to the
@@ -26,5 +20,19 @@ class ISkinTemplate(interface.Interface):
     representation for the template.""")
 
     def render(context, request):
-        """Render the template and return a unicode string (as opposed
-        to a WebOb response)."""
+        """Render the template and return a unicode string."""
+
+    def get_api(name):
+        """Look up skin api by name."""
+
+    def get_macro(name):
+        """Look up skin macro by name."""
+        
+class ISkinMacro(ISkinTemplate):
+    """Skin templates are also available as macros. These are
+    registered as named components adapting on (context, request)."""
+
+class ISkinApi(interface.Interface):
+    """A helper component available to skin templates. Skin APIs
+    should be registered as named components adapting on (context,
+    request, template)."""

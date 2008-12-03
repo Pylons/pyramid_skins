@@ -1,13 +1,16 @@
 Changelog
 =========
 
-
 Head
 ~~~~
 
+- Restructured package and changed look up scheme for skin APIs and
+  macros. A symbol ``template`` is now available to skin templates;
+  from this object, methods ``get_api`` and ``get_macro`` can be used
+  to look up skin APIs and macros, respectively. [malthe]
+
 - Added render_skin_template_to_response and render_skin_template
   methods for general template rendering. [fairwinds]
-
 
 0.4 (2008-11-13)
 ~~~~~~~~~~~~~~~~

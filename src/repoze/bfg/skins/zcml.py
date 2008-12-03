@@ -19,10 +19,10 @@ from repoze.bfg.security import ViewPermissionFactory
 
 from chameleon.zpt.template import PageTemplateFile
 
-from macros import Macros
-from api import Api
-from interfaces import IMacro
+from interfaces import ISkinMacro
 from interfaces import ISkinTemplate
+
+import template
 
 def find_templates(path):
     os.lstat(path)
@@ -33,36 +33,6 @@ def find_templates(path):
                 rel_path = fullpath[len(path)+1:]
                 name = os.path.splitext(rel_path.replace(os.path.sep, '/'))[0]
                 yield name, fullpath
-
-class TemplateViewFactory(object):
-    interface.implements(ISkinTemplate)
-    
-    def __init__(self, path):
-        self.template = PageTemplateFile(path)
-        self.name, ext = os.path.splitext(os.path.basename(path))
-        self.path = path
-
-    def __call__(self, context, request, **kwargs):
-        result = self.render(context, request, **kwargs)
-        return Response(result)
-
-    def render(self, context, request, **kwargs):
-        macros = Macros(context, request)
-        api = Api(context, request, self)
-        return self.template(
-            context=context, request=request, macros=macros, api=api, **kwargs)
-
-class TemplateMacroFactory(object):
-    def __init__(self, template_name):
-        self.skin_template = TemplateViewFactory(template_name)
-        
-    def __call__(self, context, request):
-        def macro(context, request):
-            template = self.skin_template.template
-            api = Api(context, request, self.skin_template)
-            return template.macros.bind(
-                context=context, request=request, api=api)[""]
-        return macro(context, request)
 
 class EventHandlerFactory(object):
     def __init__(self, directory, for_, provides, request_type, permission):
@@ -97,14 +67,14 @@ class EventHandlerFactory(object):
                             name)
 
                 # template as view
-                view = TemplateViewFactory(fullpath)
+                view = template.SkinTemplate(fullpath)
                 component.provideAdapter(
                     view, (self.for_, self.request_type), self.provides, name)
 
                 # template as macro
-                macro = TemplateMacroFactory(fullpath)
+                macro = template.SkinMacro(fullpath)
                 component.provideAdapter(
-                    macro, (self.for_, self.request_type), IMacro, name)
+                    macro, (self.for_, self.request_type), ISkinMacro, name)
 
 def templates(_context, directory, for_=None, provides=interface.Interface,
               request_type=IRequest, permission=None):
@@ -148,7 +118,7 @@ def templates(_context, directory, for_=None, provides=interface.Interface,
                 )
 
         # register template as view component
-        view = TemplateViewFactory(fullpath)
+        view = template.SkinTemplate(fullpath)
         _context.action(
             discriminator = ('view', for_, name, request_type, _ISkinTemplate),
             callable = handler,
@@ -158,12 +128,12 @@ def templates(_context, directory, for_=None, provides=interface.Interface,
             )
 
         # register template as macro component
-        macro = TemplateMacroFactory(fullpath)
+        macro = template.SkinMacro(fullpath)
         _context.action(
-            discriminator = ('view', for_, name, request_type, IMacro),
+            discriminator = ('view', for_, name, request_type, ISkinMacro),
             callable = handler,
             args = ('registerAdapter',
-                    macro, (for_, request_type), IMacro, name,
+                    macro, (for_, request_type), ISkinMacro, name,
                     _context.info),
             )
         

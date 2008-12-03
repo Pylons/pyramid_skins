@@ -43,8 +43,8 @@ Let's set up a context and test request.
   >>> context = Context()
 
 The template directory contains two templates, "hello.pt" and
-"world.pt". We'll verify that corresponding views have been
-registered with the component architecture.
+"world.pt". We'll verify that corresponding views have been registered
+with the component architecture.
 
   >>> from repoze.bfg.interfaces import IView
   >>> print component.getMultiAdapter(
@@ -80,31 +80,32 @@ Or render it to a unicode string.
 Template Registry
 -----------------
 
-In order to get notified if an template gets added to a registered template
-directory, the ZCML directive also registers a event subscriber which adds
-templates it discovers to a registry.  We won't test that directly, but rather
-test the behavior we want.
+When the global configuration option ``auto_reload`` is set to "true",
+skin templates are found at run-time.
 
-This is only working if the settings have auto_reload set to "true".
+Since this a test environment, we need to provide the global
+configuration registry manually.
 
   >>> from repoze.bfg.interfaces import ISettings
+  
   >>> class MockSettings(object):
-  ...     interface.implements(ISettings)
   ...     reload_templates = True
-  >>> component.provideUtility(MockSettings())
+  
+  >>> component.provideUtility(MockSettings(), ISettings)
 
 Create a template in the path we register above:
 
   >>> new_template_path.endswith("new.pt")
   True
+  
   >>> file(new_template_path, "w").write("""\
   ... <html xmlns="http://www.w3.org/1999/xhtml"
   ...       xmlns:metal="http://xml.zope.org/namespaces/metal">
   ...   <span>Hello,</span>
-  ...   <span metal:use-macro="macros.world" />
+  ...   <span metal:use-macro="template.get_macro('world')" />
   ... </html>""")
 
-Now fire the "INewRequest" event.
+Now fire the ``INewRequest`` event.
 
   >>> from zope.event import notify
   >>> from repoze.bfg.events import NewRequest
@@ -123,17 +124,19 @@ The template should now be available:
     <span>world!</span>
   </html>
 
-Template API
-------------
+Skin API
+--------
 
 Libraries and applications can register APIs for use in templates.
   
-  >>> from repoze.bfg.skins import TemplateAPI  
+  >>> from repoze.bfg.skins.template import SkinApi
+
+  >>> class MyApi(SkinApi):
+  ...     hello = u"world"
   
   >>> from repoze.bfg.skins.interfaces import ISkinTemplate
   >>> component.provideAdapter(
-  ...     TemplateAPI,
-  ...     (Context, IRequest, ISkinTemplate), name="test")
+  ...     MyApi, name="test")
 
   >>> print component.getMultiAdapter(
   ...    (context, request), IView, name=u"api")
@@ -142,7 +145,7 @@ Libraries and applications can register APIs for use in templates.
   Content-Length: ...
   <BLANKLINE>
   <html>
-    Hello, <Context object at ...>!
+    Hello, world!
   </html>
   <BLANKLINE>
 

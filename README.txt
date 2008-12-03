@@ -77,57 +77,55 @@ parameters are all optional.
 Macro support
 -------------
 
-Templates are also available as METAL macros using the symbol
-``macros`` which is available to all skin templates (it may be
-instantiated manually, too).
+Templates are also available as METAL macros using the function
+``get_macro`` which is available from the ``template`` symbol to all
+skin templates.
 
-The ``macros`` object is tied to the current request; the context is
-the template context, if one does not explicitly provide one. The
-usage of the ``macros`` object is demonstrated below::
+The ``template`` symbol is tied to the current context and
+request. The usage of the ``macros`` object is demonstrated below::
 
-   <div metal:use-macro="macros.thumbnail" />
-   <div metal:use-macro="macros(some_context).thumbnail" />
+   <div metal:use-macro="template.get_macro('thumbnail')" />
+   <div metal:use-macro="template.get_macro('thumbnail', context)" />
 
 A more elaborate example demonstrating macro slot support::
 
-   <div metal:use-macro="macros.thumbnail">
+   <div metal:use-macro="template.get_macro('thumbnail')">
       <span metal:fill-slot="label">
          This is a thumbnail
       <span>
    </div>
 
-Providing custom template APIs 
-------------------------------
+Providing custom skin APIs 
+--------------------------
 
-To aid template designers, applications and libraries can make APIs
-available to templates. Simply register a named component for the
-``ITemplateAPI`` interface that adapts on (context, request,
-template). A base class is provide for convenience.
+Helper utilities can be registered as skin apis and pulled in using
+the utility function ``get_api``, which is available from the
+``template`` symbol.
+
+They must be registered as named component providing the ``ISkinApi``
+interface, adapting on (context, request, template). A base class is
+provide for convenience:
+
+  >>> from repoze.bfg.skins.template import SkinApi
 
 To look up a template API, simply use attribute-access on the ``api``
 symbol.
 
-  <div tal:define="my_custom_api api.my_custom_api" />
-
-Note that by default, the ``api`` symbol is available to skin
-templates only; to access the symbol in a standard page template, you
-must manually instantiate the class and provide it by keyword
-argument.
+  <div tal:define="api template.get_api('custom')" />
 
 Automatic detection of new template files
 -----------------------------------------
 
-In debug-mode, skin templates are automatically picked up and
-registered. The way this works is that there's an event listener
-registered for the ``repoze.bfg.interfaces.INewRequest`` event such
-that directories are searched for new files before any application
-logic is run, prior to each request.
+When the global configuration option ``auto_reload`` is set to "true",
+skin templates are found at run-time.
 
-Credits
--------
+Contributors
+------------
 
-This software is developed by Malthe Borch <mborch@gmail.com>. To
-contribute to development or get support, please visit the #repoze
+Malthe Borch <mborch@gmail.com>
+Stefan Eletzhofer <stefan.eletzhofer@inquant.de>
+
+To contribute to development or get support, please visit the #repoze
 channel on freenode irc or write the mailinglist.
 
 
