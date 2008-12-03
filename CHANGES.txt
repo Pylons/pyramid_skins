@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+- Do not register macro components separately, but make them available
+  from the ``macro`` attribute of a skin template. [malthe]
+
 0.5 (2008-12-3)
 ~~~~~~~~~~~~~~~
 

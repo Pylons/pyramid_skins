@@ -19,7 +19,6 @@ from repoze.bfg.security import ViewPermissionFactory
 
 from chameleon.zpt.template import PageTemplateFile
 
-from interfaces import ISkinMacro
 from interfaces import ISkinTemplate
 
 import template
@@ -71,11 +70,6 @@ class EventHandlerFactory(object):
                 component.provideAdapter(
                     view, (self.for_, self.request_type), self.provides, name)
 
-                # template as macro
-                macro = template.SkinMacro(fullpath)
-                component.provideAdapter(
-                    macro, (self.for_, self.request_type), ISkinMacro, name)
-
 def templates(_context, directory, for_=None, provides=interface.Interface,
               request_type=IRequest, permission=None):
     # provide interface
@@ -124,16 +118,6 @@ def templates(_context, directory, for_=None, provides=interface.Interface,
             callable = handler,
             args = ('registerAdapter',
                     view, (for_, request_type), _ISkinTemplate, name,
-                    _context.info),
-            )
-
-        # register template as macro component
-        macro = template.SkinMacro(fullpath)
-        _context.action(
-            discriminator = ('view', for_, name, request_type, ISkinMacro),
-            callable = handler,
-            args = ('registerAdapter',
-                    macro, (for_, request_type), ISkinMacro, name,
                     _context.info),
             )
         

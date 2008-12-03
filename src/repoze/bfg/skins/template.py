@@ -8,7 +8,6 @@ from repoze.bfg.interfaces import IRequest
 from chameleon.zpt.template import PageTemplateFile
 
 from interfaces import ISkinApi
-from interfaces import ISkinMacro
 from interfaces import ISkinTemplate
 
 from copy import copy
@@ -71,29 +70,31 @@ class SkinTemplate(object):
             context=context, request=request,
             template=self.bind(context, request), **kwargs)
 
-    def get_api(self, name):
+    def get_api(self, name, context=None):
         """Look up skin api by name."""
-        
-        assert self.context is not None
-        return component.getMultiAdapter(
-            (self.context, self.request, self), ISkinApi, name=name)
 
-    def get_macro(self, name):
+        if context is None:
+            context = self.context
+            
+        assert self.request is not None
+        return component.getMultiAdapter(
+            (context, self.request, self), ISkinApi, name=name)
+
+    def get_macro(self, name=None, context=None):
         """Look up skin macro by name."""
         
-        assert self.context is not None
-        return component.getMultiAdapter(
-            (self.context, self.request), ISkinMacro, name=name)
-    
-class SkinMacro(SkinTemplate):
-    interface.implements(ISkinMacro)
-    
-    def __call__(self, context, request):
-        def macro(context, request):
+        if context is None:
+            context = self.context
+
+        assert self.request is not None
+
+        if name is None:
             return self.template.macros.bind(
-                context=context, request=request,
-                template=self.bind(context, request))[""]
-        return macro(context, request)
+                context=context, request=self.request,
+                template=self.bind(context, self.request))[""]
+
+        template = get_skin_template(context, self.request, name)
+        return template.bind(context, self.request).get_macro()
 
 class SkinApi(object):
     """Base class for skin template helper APIs."""
