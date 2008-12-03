@@ -46,6 +46,15 @@ class SkinTemplate(object):
         return webob.Response(
             self.render(context, request, **kwargs))
 
+    def __getattr__(self, name):
+        if name.startswith('get_'):
+            method = component.queryMultiAdapter(
+                (self.context, self.request, self), ISkinApi, name=name[4:])
+            if method is None:
+                raise AttributeError(name)
+            return method
+        raise AttributeError(name)
+        
     def bind(self, context, request):
         """Bind template to context and request (returns a copy of the
         template instance)."""

@@ -4,6 +4,10 @@ Changelog
 Head
 ~~~~
 
+- Added component lookup scheme for the bound skin template object
+  which makes skin API components available using ``get_<name>`` where
+  <name> is the component name. [malthe]
+
 - Restructured package and changed look up scheme for skin APIs and
   macros. A symbol ``template`` is now available to skin templates;
   from this object, methods ``get_api`` and ``get_macro`` can be used
