@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+0.7 (2008-12-04)
+~~~~~~~~~~~~~~~~
+
 - If ``provides`` is set, do not automatically provide the
   ``ISkinTemplate`` interface as well; this behavior made it difficult
   to program cascading rendering schemes. [malthe]
@@ -14,14 +17,14 @@ Head
 - Added security assertions to macro rendering function to prevent
   infinite loop if a template tries to render itself. [malthe]
 
-0.6 (2008-12-3)
-~~~~~~~~~~~~~~~
+0.6 (2008-12-03)
+~~~~~~~~~~~~~~~~
 
 - Do not register macro components separately, but make them available
   from the ``macro`` attribute of a skin template. [malthe]
 
-0.5 (2008-12-3)
-~~~~~~~~~~~~~~~
+0.5 (2008-12-03)
+~~~~~~~~~~~~~~~~
 
 - Added component lookup scheme for the bound skin template object
   which makes skin API components available using ``get_<name>`` where
