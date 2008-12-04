@@ -19,12 +19,14 @@ def get_skin_template(context, request, name):
     return gsm.adapters.lookup(
         map(interface.providedBy, (context, request)), ISkinTemplate, name=name)
 
-def render_skin_template_to_response(context, request, name):
-    return component.queryMultiAdapter(
-        (context, request), ISkinTemplate, name)
+def render_skin_template_to_response(context, request, name, **kwargs):
+    template = get_skin_template(context, request, name)
+    if template is not None:
+        return template(context, request, **kwargs)
 
-def render_skin_template(context, request, name):
-    response = render_skin_template_to_response(context, request, name)
+def render_skin_template(context, request, name, **kwargs):
+    response = render_skin_template_to_response(
+        context, request, name, **kwargs)
     if response is not None:
         return response.body
 
@@ -44,6 +46,9 @@ class SkinTemplate(object):
         
         return webob.Response(
             self.render(context, request, **kwargs))
+
+    def __eq__(self, other):
+        return self.template is other.template
 
     def __getattr__(self, name):
         if name.startswith('get_'):
@@ -94,6 +99,14 @@ class SkinTemplate(object):
                 template=self.bind(context, self.request))[""]
 
         template = get_skin_template(context, self.request, name)
+        if template is None:
+            raise component.ComponentLookupError(
+                "Unable to look up skin template: %s." % repr(name))
+            
+        if template == self:
+            raise RuntimeError(
+                "Macro is equal to calling template.")
+                
         return template.bind(context, self.request).get_macro()
 
 class SkinApi(object):

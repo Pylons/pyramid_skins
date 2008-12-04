@@ -4,6 +4,12 @@ Changelog
 Head
 ~~~~
 
+- Keyword-arguments are now accepted by the utility methods for
+  rendering skin templates using Python. [malthe]
+
+- Added security assertions to macro rendering function to prevent
+  infinite loop if a template tries to render itself. [malthe]
+
 0.6 (2008-12-3)
 ~~~~~~~~~~~~~~~
 
