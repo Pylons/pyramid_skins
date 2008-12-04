@@ -4,6 +4,10 @@ Changelog
 Head
 ~~~~
 
+- If ``provides`` is set, do not automatically provide the
+  ``ISkinTemplate`` interface as well; this behavior made it difficult
+  to program cascading rendering schemes. [malthe]
+
 - Keyword-arguments are now accepted by the utility methods for
   rendering skin templates using Python. [malthe]
 

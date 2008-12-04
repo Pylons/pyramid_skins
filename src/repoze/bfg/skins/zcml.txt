@@ -27,7 +27,6 @@ and any request type.
 
   >>> xmlconfig(StringIO(template % ("""\
   ...   <bfg:templates
-  ...     provides="repoze.bfg.interfaces.IView"
   ...     directory="%s/tests/templates"
   ...   />""" % path)))
 
@@ -46,9 +45,9 @@ The template directory contains two templates, "hello.pt" and
 "world.pt". We'll verify that corresponding views have been registered
 with the component architecture.
 
-  >>> from repoze.bfg.interfaces import IView
+  >>> from repoze.bfg.skins.interfaces import ISkinTemplate
   >>> print component.getMultiAdapter(
-  ...    (context, request), IView, name=u"hello")
+  ...    (context, request), ISkinTemplate, name=u"hello")
   200 OK
   content-type: text/html; charset=UTF-8
   Content-Length: ...
@@ -114,7 +113,7 @@ Now fire the ``INewRequest`` event.
 The template should now be available:
 
   >>> print component.getMultiAdapter(
-  ...    (context, request), IView, name=u"new")
+  ...    (context, request), ISkinTemplate, name=u"new")
   200 OK
   content-type: text/html; charset=UTF-8
   Content-Length: ...
@@ -139,7 +138,7 @@ Libraries and applications can register APIs for use in templates.
   ...     MyApi, name="test")
 
   >>> print component.getMultiAdapter(
-  ...    (context, request), IView, name=u"api")
+  ...    (context, request), ISkinTemplate, name=u"api")
   200 OK
   content-type: text/html; charset=UTF-8
   Content-Length: ...
