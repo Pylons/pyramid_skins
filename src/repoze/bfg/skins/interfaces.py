@@ -36,3 +36,7 @@ class ISkinApi(interface.Interface):
     """A helper component available to skin templates. Skin APIs
     should be registered as named components adapting on (context,
     request, template)."""
+
+class ISkinApiMethod(interface.Interface):
+    """Skin API methods are an alternative to a generic API and get
+    the chance of having arguments passed."""

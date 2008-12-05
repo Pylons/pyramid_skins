@@ -61,7 +61,8 @@ We can adapt to the ``ISkinTemplate`` which provides additional
 rendering options.
   
   >>> from repoze.bfg.skins import get_skin_template
-  >>> template = get_skin_template(context, request, u"hello")
+  >>> template = get_skin_template(
+  ...     context, IRequest, u"hello")
 
 We can get the path to the template.
   

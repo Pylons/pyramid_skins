@@ -1,3 +1,10 @@
+In next release
+
+  - Updated signatures for skin template factory lookup
+    functions. [malthe]
+
+  - Added support for skin api methods. [malthe]
+
 0.8 (2008-12-05)
 
   - Provide ``ISkinMacro`` unless ``provides`` is set; however, always
