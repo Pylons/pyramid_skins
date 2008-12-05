@@ -27,6 +27,10 @@ class ISkinTemplate(interface.Interface):
 
     def get_macro(name):
         """Look up skin macro by name."""
+
+class ISkinMacro(ISkinTemplate):
+    """Skin template components provide this interface by default,
+    which enables them for use as macros."""
         
 class ISkinApi(interface.Interface):
     """A helper component available to skin templates. Skin APIs

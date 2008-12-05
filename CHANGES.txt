@@ -4,6 +4,11 @@ Changelog
 Head
 ~~~~
 
+- Provide ``ISkinMacro`` unless ``provides`` is set; however, always
+  provide ``ISkinTemplate``. Meanwhile, the macro accessor looks only
+  for skin templates registered for the ``ISkinMacro``
+  interface. [malthe]
+
 0.7 (2008-12-04)
 ~~~~~~~~~~~~~~~~
 

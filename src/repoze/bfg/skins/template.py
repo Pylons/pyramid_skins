@@ -8,16 +8,24 @@ from repoze.bfg.interfaces import IRequest
 from chameleon.zpt.template import PageTemplateFile
 
 from interfaces import ISkinApi
+from interfaces import ISkinMacro
 from interfaces import ISkinTemplate
 
 from copy import copy
 
+def get_skin_macro(context, request, name):
+    return get_skin_component(
+        context, request, name, ISkinMacro)
+
 def get_skin_template(context, request, name):
-    """Look up skin template by name."""
-    
+    return get_skin_component(
+        context, request, name, ISkinTemplate)
+
+def get_skin_component(context, request, name, provides):
     gsm = component.getSiteManager()
     return gsm.adapters.lookup(
-        map(interface.providedBy, (context, request)), ISkinTemplate, name=name)
+        map(interface.providedBy, (context, request)),
+        provides, name=name)
 
 def render_skin_template_to_response(context, request, name, **kwargs):
     template = get_skin_template(context, request, name)
@@ -98,16 +106,16 @@ class SkinTemplate(object):
                 context=context, request=self.request,
                 template=self.bind(context, self.request))[""]
 
-        template = get_skin_template(context, self.request, name)
-        if template is None:
+        macro = get_skin_macro(context, self.request, name)
+        if macro is None:
             raise component.ComponentLookupError(
                 "Unable to look up skin template: %s." % repr(name))
             
-        if template == self:
+        if macro == self:
             raise RuntimeError(
                 "Macro is equal to calling template.")
                 
-        return template.bind(context, self.request).get_macro()
+        return macro.bind(context, self.request).get_macro()
 
 class SkinApi(object):
     """Base class for skin template helper APIs."""

@@ -20,6 +20,7 @@ from repoze.bfg.security import ViewPermissionFactory
 from chameleon.zpt.template import PageTemplateFile
 
 from interfaces import ISkinTemplate
+from interfaces import ISkinMacro
 
 import template
 
@@ -70,7 +71,7 @@ class EventHandlerFactory(object):
                 component.provideAdapter(
                     view, (self.for_, self.request_type), self.provides, name)
 
-def templates(_context, directory, for_=None, provides=ISkinTemplate,
+def templates(_context, directory, for_=None, provides=ISkinMacro,
               request_type=IRequest, permission=None):
     # provide interface
     if for_ is not None:
@@ -80,8 +81,12 @@ def templates(_context, directory, for_=None, provides=ISkinTemplate,
             args = ('', for_)
             )
 
+    class _ISkinTemplate(provides, ISkinTemplate):
+        """Dynamically created interface which provides ``%s`` in
+        addition to ``ISkinTemplate``.""" % provides.__name__
+        
     event_handler = EventHandlerFactory(
-        directory, for_, provides, request_type, permission)
+        directory, for_, _ISkinTemplate, request_type, permission)
     
     _context.action(
         discriminator = ('registerHandler', id(event_handler), INewRequest),
@@ -110,10 +115,10 @@ def templates(_context, directory, for_=None, provides=ISkinTemplate,
         # register template as view component
         view = template.SkinTemplate(fullpath)
         _context.action(
-            discriminator = ('view', for_, name, request_type, provides),
+            discriminator = ('view', for_, name, request_type, _ISkinTemplate),
             callable = handler,
             args = ('registerAdapter',
-                    view, (for_, request_type), provides, name,
+                    view, (for_, request_type), _ISkinTemplate, name,
                     _context.info),
             )
         
