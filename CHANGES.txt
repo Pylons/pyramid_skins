@@ -1,4 +1,4 @@
-In next release
+0.9 (2008-12-05)
 
   - Updated signatures for skin template factory lookup
     functions. [malthe]
