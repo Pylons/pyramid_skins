@@ -1,8 +1,8 @@
 Changelog
 =========
 
-Head
-~~~~
+0.8 (2008-12-05)
+~~~~~~~~~~~~~~~~
 
 - Provide ``ISkinMacro`` unless ``provides`` is set; however, always
   provide ``ISkinTemplate``. Meanwhile, the macro accessor looks only
