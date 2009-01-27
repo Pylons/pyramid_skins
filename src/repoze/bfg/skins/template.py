@@ -74,7 +74,11 @@ class SkinTemplate(object):
             return method
         
         raise AttributeError(name)
-        
+
+    @property
+    def macros(self):
+        return self.template.macros
+    
     def bind(self, context, request):
         """Bind template to context and request (returns a copy of the
         template instance)."""
