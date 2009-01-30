@@ -1,7 +1,7 @@
 Changelog
 =========
 
-In next release
+0.10 (2009-01-28)
 
   - Added parameter ``content_type`` which will set the content type
     of the view response. [malthe]

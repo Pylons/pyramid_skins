@@ -19,7 +19,7 @@ def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(name='repoze.bfg.skins',
-      version = '0.9',
+      version = '0.10',
       description='Skin templates for repoze.bfg',
       long_description=read('README.txt'),
       keywords = "zope3 repoze bfg",
