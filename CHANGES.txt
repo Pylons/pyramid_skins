@@ -3,6 +3,9 @@ Changelog
 
 In next release
 
+  - Added parameter ``content_type`` which will set the content type
+    of the view response. [malthe]
+
   - Added ``macros`` attribute to the template object. [malthe]
 
 0.9 (2008-12-05)

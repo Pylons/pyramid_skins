@@ -42,16 +42,17 @@ class SkinTemplate(object):
     context = None
     request = None
     
-    def __init__(self, path):
+    def __init__(self, path, content_type=None):
         self.template = PageTemplateFile(path)
         self.name, ext = os.path.splitext(os.path.basename(path))
         self.path = path
-
+        self.content_type = content_type
+        
     def __call__(self, context, request, **kwargs):
         """Render and return a WebOb response."""
-        
+
         return webob.Response(
-            self.render(context, request, **kwargs))
+            self.render(context, request, **kwargs), content_type=self.content_type)
 
     def __eq__(self, other):
         return self.template is other.template

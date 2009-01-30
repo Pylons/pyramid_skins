@@ -72,7 +72,7 @@ class EventHandlerFactory(object):
                     view, (self.for_, self.request_type), self.provides, name)
 
 def templates(_context, directory, for_=None, provides=ISkinMacro,
-              request_type=IRequest, permission=None):
+              request_type=IRequest, permission=None, content_type=None):
     # provide interface
     if for_ is not None:
         _context.action(
@@ -113,7 +113,7 @@ def templates(_context, directory, for_=None, provides=ISkinMacro,
                 )
 
         # register template as view component
-        view = template.SkinTemplate(fullpath)
+        view = template.SkinTemplate(fullpath, content_type=content_type)
         _context.action(
             discriminator = ('view', for_, name, request_type, _ISkinTemplate),
             callable = handler,
@@ -152,6 +152,12 @@ class ITemplatesDirective(interface.Interface):
     permission = TextLine(
         title=u"Permission",
         description=u"The permission needed to use the view templates.",
+        required=False
+        )
+
+    content_type = TextLine(
+        title=u"Content-type",
+        description=u"The content-type of the response.",
         required=False
         )
 
