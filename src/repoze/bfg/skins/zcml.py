@@ -68,19 +68,15 @@ class DirectoryRegistrationFactory(object):
             view = SkinTemplate(fullpath)
 
             for provides in self.provides:
-                try:
-                    template = gsm.adapters.lookup(
-                        (iface, self.request_type), provides, name=name)
-                except:
-                    import pdb; pdb.set_trace()
-                    
+                template = gsm.adapters.lookup(
+                    (iface, self.request_type), provides, name=name)
                 if template is not None:
                     continue
 
                 # if the skin template is to provide a view, we may need
                 # to register a permission adapter for it
-                if IView.implementedBy(provides) and self.permission:
-                    pfactory = ViewPermissionFactory(permission)
+                if provides.isOrExtends(IView) and self.permission:
+                    pfactory = ViewPermissionFactory(self.permission)
                     _context.action(
                         discriminator = ('permission', self.for_, name,
                                          self.request_type, IViewPermission),
@@ -107,6 +103,13 @@ class DirectoryRegistrationFactory(object):
 
 def templates(_context, directory, for_=None, provides=(ISkinMacro,),
               request_type=IRequest, permission=None, content_type=None):
+    # if a permission is required, make sure we're registering a view;
+    # otherwise, it makes no sense and we should raise an error
+    if permission is not None:
+        if True not in [iface.isOrExtends(IView) for iface in provides]:
+            raise ValueError(
+                "Can only require permission when a view is provided.")
+
     if for_ is not None:
         _context.action(
             discriminator = None,

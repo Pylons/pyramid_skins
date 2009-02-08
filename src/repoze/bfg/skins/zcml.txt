@@ -11,21 +11,20 @@ Load meta configuration.
 
 To keep the examples simple, we define a ZCML-template.
   
-  >>> template = """\
+  >>> zcml_template = """\
   ... <configure
   ...     xmlns="http://namespaces.zope.org/zope"
   ...     xmlns:bfg="http://namespaces.repoze.org/bfg">
   ...   %s
   ... </configure>"""
 
-  
 Registering a template directory
 --------------------------------
 
 The most simple registration makes templates available for any context
 and any request type.
 
-  >>> xmlconfig(StringIO(template % ("""\
+  >>> xmlconfig(StringIO(zcml_template % ("""\
   ...   <bfg:templates
   ...     directory="%s/tests/templates"
   ...   />""" % path)))
@@ -52,7 +51,7 @@ with the component architecture.
   content-type: text/html; charset=UTF-8
   Content-Length: ...
   <BLANKLINE>
-  <html>
+  <html xmlns="http://www.w3.org/1999/xhtml">
     <span>Hello,</span>
     <span>world!</span>
   </html>
@@ -70,11 +69,42 @@ component object.
 The template provides a ``render`` method.
   
   >>> print template.render(context, request)
-  <html>
+  <html xmlns="http://www.w3.org/1999/xhtml">
     <span>Hello,</span>
     <span>world!</span>
   </html>
 
+View templates
+--------------
+
+If we provide the ``IView`` interface, 
+
+The most simple registration makes templates available for any context
+and any request type.
+
+  >>> xmlconfig(StringIO(zcml_template % ("""\
+  ...   <bfg:templates
+  ...     directory="%s/tests/templates"
+  ...     permission="some_permission"
+  ...     provides="repoze.bfg.interfaces.IView"
+  ...   />""" % path)))
+
+We may now render the template as a view.
+
+  >>> from repoze.bfg.view import render_view
+  >>> print render_view(context, request, u"hello")
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <span>Hello,</span>
+    <span>world!</span>
+  </html>
+
+A view permission will have been registered for the view.
+
+  >>> from repoze.bfg.interfaces import IViewPermission
+  >>> component.queryMultiAdapter(
+  ...     (context, request), IViewPermission, name=u"hello")
+  <Permission at ... named u'some_permission' for None>
+  
 Template Registry
 -----------------
 
@@ -116,8 +146,7 @@ The template should now be available:
   200 OK
   content-type: text/html; charset=UTF-8
   Content-Length: ...
-  <BLANKLINE>
-  <html>
+  <html xmlns="http://www.w3.org/1999/xhtml">
     <span>Hello,</span>
     <span>world!</span>
   </html>
@@ -141,9 +170,7 @@ Libraries and applications can register APIs for use in templates.
   200 OK
   content-type: text/html; charset=UTF-8
   Content-Length: ...
-  <BLANKLINE>
-  <html>
+  <html xmlns="http://www.w3.org/1999/xhtml">
     Hello, world!
   </html>
-  <BLANKLINE>
 
