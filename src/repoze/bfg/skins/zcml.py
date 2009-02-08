@@ -23,6 +23,8 @@ from repoze.bfg.security import ViewPermissionFactory
 from chameleon.zpt.template import PageTemplateFile
 
 from interfaces import ISkinMacro
+from interfaces import ISkinTemplate
+
 from template import SkinTemplate
 
 def find_templates(path):
@@ -109,6 +111,12 @@ def templates(_context, directory, for_=None, provides=(ISkinMacro,),
         if True not in [iface.isOrExtends(IView) for iface in provides]:
             raise ValueError(
                 "Can only require permission when a view is provided.")
+
+    # if none of the interface provide the ``ISkinTemplate``
+    # interface, we provide it by default
+    provides = list(provides)
+    if True not in [iface.isOrExtends(ISkinTemplate) for iface in provides]:
+        provides.append(ISkinTemplate)
 
     if for_ is not None:
         _context.action(
