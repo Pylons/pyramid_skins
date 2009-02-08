@@ -42,7 +42,7 @@ Let's set up a context and test request.
   >>> context = Context()
 
 The template directory contains two templates, "hello.pt" and
-"world.pt". We'll verify that corresponding views have been registered
+"world.pt". We'll verify that template components have been registered
 with the component architecture.
 
   >>> from repoze.bfg.skins.interfaces import ISkinTemplate
@@ -57,19 +57,17 @@ with the component architecture.
     <span>world!</span>
   </html>
 
-We can adapt to the ``ISkinTemplate`` which provides additional
-rendering options.
+For convenience, a method is able to retrieve the skin template
+component object.
   
   >>> from repoze.bfg.skins import get_skin_template
   >>> template = get_skin_template(
   ...     context, IRequest, u"hello")
 
-We can get the path to the template.
-  
   >>> template.path
   u'.../tests/templates/hello.pt'
   
-Or render it to a unicode string.
+The template provides a ``render`` method.
   
   >>> print template.render(context, request)
   <html>
