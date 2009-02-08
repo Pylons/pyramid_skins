@@ -124,7 +124,7 @@ class SkinTemplate(object):
             context, interface.providedBy(self.request), name)
         if macro is None:
             raise component.ComponentLookupError(
-                "Unable to look up skin template: %s." % repr(name))
+                "Unable to look up skin macro: %s." % repr(name))
             
         if macro == self:
             raise RuntimeError(
