@@ -1,6 +1,13 @@
 Changelog
 =========
 
+In next release
+
+  - View permission is now only registered if a view must be
+    provided. [malthe]
+
+  - Multiple interfaces may be specified as ``provides``. [malthe]
+
 0.10 (2009-01-28)
 
   - Added parameter ``content_type`` which will set the content type
