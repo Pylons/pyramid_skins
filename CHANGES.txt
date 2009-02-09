@@ -1,7 +1,7 @@
 Changelog
 =========
 
-In next release
+0.11 (2009-02-09)
 
   - View permission is now only registered if a view must be
     provided. [malthe]
