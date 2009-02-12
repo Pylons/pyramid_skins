@@ -16,9 +16,16 @@ from interfaces import IBoundSkinTemplate
 
 from copy import copy
 
-def get_skin_template(context, request, name):
-    return component.queryMultiAdapter(
-        (context, request), ISkinTemplate, name=name)
+def get_skin_template(context, request, name, request_type=None):
+    if request_type is None:
+        return component.queryMultiAdapter(
+            (context, request), ISkinTemplate, name=name)
+
+    factory = component.getSiteManager().adapters.lookup(
+        (interface.providedBy(context), request_type), 
+        ISkinTemplate, name=name)
+
+    return factory(context, request)
 
 def render_skin_template_to_response(context, request, name, **kwargs):
     template = get_skin_template(context, request, name)

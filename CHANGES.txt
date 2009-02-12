@@ -3,6 +3,10 @@ Changelog
 
 In next release
 
+  - The ``get_skin_template`` method now accepts an optional
+    ``request_type`` parameter, which takes priority in
+    adaptation. [malthe]
+
   - The <bfg:templates> directive now registers two components per
     template, a skin template component and a view. The ``provides``
     attribute has been retired. [malthe]

@@ -91,6 +91,15 @@ A method to look up skin templates is available from the module.
     <span>Hello,</span>
     <span>world!</span>
   </html>
+
+We may optionally require adaptation on an alternative request
+type. This is illustrated here by passing in ``None`` as the
+request-object. In an actual use, a non-trivial request should be
+provided.
+
+  >>> get_skin_template(
+  ...     context, None, u"hello", request_type=IRequest)
+  <repoze.bfg.skins.template.SkinTemplate object at ...>
   
 Skin templates are directly available as views.
 
