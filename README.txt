@@ -51,7 +51,7 @@ traversable views::
 
   <bfg:templates
      directory="templates"
-     class="repoze.bfg.skins.SkinTemplateView"
+     class="repoze.bfg.skins.View"
      permission="some_permission"
      />
 

@@ -5,3 +5,5 @@ from template import render_skin_template_to_response
 
 from template import SkinTemplate
 from template import SkinTemplateView
+
+View = SkinTemplateView

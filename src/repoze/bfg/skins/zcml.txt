@@ -109,7 +109,7 @@ default.
   >>> xmlconfig(StringIO(zcml_template % ("""\
   ...   <bfg:templates
   ...     directory="%s/tests/templates"
-  ...     class="repoze.bfg.skins.SkinTemplateView"
+  ...     class="repoze.bfg.skins.View"
   ...   />""" % path)))
 
   >>> from repoze.bfg.view import render_view
@@ -133,7 +133,7 @@ We may optionally protect views with a permission.
   >>> xmlconfig(StringIO(zcml_template % ("""\
   ...   <bfg:templates
   ...     directory="%s/tests/templates"
-  ...     class="repoze.bfg.skins.SkinTemplateView"
+  ...     class="repoze.bfg.skins.View"
   ...     permission="some_permission"
   ...   />""" % path)))
 
