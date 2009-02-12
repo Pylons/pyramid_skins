@@ -1,7 +1,7 @@
 Changelog
 =========
 
-In next release
+0.12 (2009-02-12)
 
   - Added convenience method ``get_skin_template_view``. [malthe]
 
