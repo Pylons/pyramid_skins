@@ -9,7 +9,7 @@ from zope.component.interface import provideInterface
 from zope.schema import TextLine
 
 from zope.configuration.fields import \
-     GlobalObject, GlobalInterface, Tokens, Path
+     GlobalObject, GlobalInterface, Path
 from zope.configuration.config import ConfigurationMachine
 
 from repoze.bfg.interfaces import IView
@@ -22,10 +22,11 @@ from repoze.bfg.security import ViewPermissionFactory
 
 from chameleon.zpt.template import PageTemplateFile
 
-from interfaces import ISkinMacro
 from interfaces import ISkinTemplate
+from interfaces import ISkinTemplateView
 
 from template import SkinTemplate
+from template import SkinTemplateView
 
 def find_templates(path):
     os.lstat(path)
@@ -41,11 +42,10 @@ def find_templates(path):
                 yield name, fullpath
 
 class DirectoryRegistrationFactory(object):
-    def __init__(self, directory, for_, provides, request_type, permission):
+    def __init__(self, directory, for_, request_type, permission):
         self.directory = directory
         self.for_ = for_
         self.permission = permission
-        self.provides = provides
         self.request_type = request_type
 
     def __call__(self, event=None, context=None, force_reload=False):
@@ -67,57 +67,48 @@ class DirectoryRegistrationFactory(object):
             iface = interface.implementedBy(iface)
                 
         for name, fullpath in find_templates(self.directory):
-            view = SkinTemplate(fullpath)
+            template = SkinTemplate(fullpath)
+            view = SkinTemplateView(template)
+            
+            # register skin template
+            _context.action(
+                discriminator = (
+                    'template', self.for_, name, self.request_type),
+                callable = handler,
+                    args = ('registerAdapter',
+                            template, (self.for_, self.request_type),
+                            ISkinTemplate, name,
+                            _context.info),
+                )
 
-            for provides in self.provides:
-                template = gsm.adapters.lookup(
-                    (iface, self.request_type), provides, name=name)
-                if template is not None:
-                    continue
-
-                # if the skin template is to provide a view, we may need
-                # to register a permission adapter for it
-                if provides.isOrExtends(IView) and self.permission:
-                    pfactory = ViewPermissionFactory(self.permission)
-                    _context.action(
-                        discriminator = ('permission', self.for_, name,
-                                         self.request_type, IViewPermission),
-                        callable = handler,
-                        args = ('registerAdapter',
-                                pfactory, (self.for_, self.request_type),
-                                IViewPermission, name, _context.info),
-                        )
-
-                # register the skin template component for this
-                # specification
+            # register view permission, if needed
+            if self.permission:
+                pfactory = ViewPermissionFactory(self.permission)
                 _context.action(
-                    discriminator = ('view', self.for_, name,
-                                     self.request_type, provides),
+                    discriminator = ('permission', self.for_, name,
+                                     self.request_type, IViewPermission),
                     callable = handler,
                     args = ('registerAdapter',
-                            view, (self.for_, self.request_type), provides, name,
-                            _context.info),
+                            pfactory, (self.for_, self.request_type),
+                            IViewPermission, name, _context.info),
                     )
+
+            # register view
+            _context.action(
+                discriminator = ('view', self.for_, name, self.request_type),
+                callable = handler,
+                args = ('registerAdapter',
+                        view, (self.for_, self.request_type),
+                        ISkinTemplateView, name,
+                        _context.info),
+                )
 
         # if no configuration context was supplied, execute the actions
         if context is None:
             _context.execute_actions()
 
-def templates(_context, directory, for_=None, provides=(ISkinMacro,),
-              request_type=IRequest, permission=None, content_type=None):
-    # if a permission is required, make sure we're registering a view;
-    # otherwise, it makes no sense and we should raise an error
-    if permission is not None:
-        if True not in [iface.isOrExtends(IView) for iface in provides]:
-            raise ValueError(
-                "Can only require permission when a view is provided.")
-
-    # if none of the interface provide the ``ISkinTemplate``
-    # interface, we provide it by default
-    provides = list(provides)
-    if True not in [iface.isOrExtends(ISkinTemplate) for iface in provides]:
-        provides.append(ISkinTemplate)
-
+def templates(_context, directory, for_=None, request_type=IRequest,
+              permission=None, content_type=None):
     if for_ is not None:
         _context.action(
             discriminator = None,
@@ -130,7 +121,7 @@ def templates(_context, directory, for_=None, provides=(ISkinMacro,),
     # pick up new templates on the fly, if the ``reload_templates``
     # setting is set).
     factory = DirectoryRegistrationFactory(
-        directory, for_, provides, request_type, permission)
+        directory, for_, request_type, permission)
     
     _context.action(
         discriminator = ('registerHandler', id(factory), INewRequest),
@@ -152,13 +143,6 @@ class ITemplatesDirective(interface.Interface):
     for_ = GlobalObject(
         title=u"The interface or class the view templates are for.",
         required=False
-        )
-
-    provides = Tokens(
-        title=(u"The interface which the template components should "
-               u"additionally provide."),
-        required=False,
-        value_type=GlobalInterface(),
         )
 
     request_type = GlobalObject(

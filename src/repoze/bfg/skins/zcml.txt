@@ -45,8 +45,23 @@ The template directory contains two templates, "hello.pt" and
 with the component architecture.
 
   >>> from repoze.bfg.skins.interfaces import ISkinTemplate
-  >>> print component.getMultiAdapter(
+  >>> template = component.getMultiAdapter(
   ...    (context, request), ISkinTemplate, name=u"hello")
+
+  >>> template.path
+  u'.../tests/templates/hello.pt'
+
+The template provides a ``render`` method.
+  
+  >>> print template.render()
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <span>Hello,</span>
+    <span>world!</span>
+  </html>
+
+Calling the template returns an HTTP response.
+  
+  >>> print template()
   200 OK
   content-type: text/html; charset=UTF-8
   Content-Length: ...
@@ -55,41 +70,29 @@ with the component architecture.
     <span>Hello,</span>
     <span>world!</span>
   </html>
+  
+A method to look up skin templates is available from the module.
+  
+  >>> from repoze.bfg.skins import get_skin_template, \
+  ...                              render_skin_template, \
+  ...                              render_skin_template_to_response
+  
+  >>> get_skin_template(
+  ...     context, request, u"hello")
+  <repoze.bfg.skins.template.SkinTemplate object at ...>
 
-For convenience, a method is able to retrieve the skin template
-component object.
+  >>> render_skin_template_to_response(
+  ...     context, request, u"hello")
+  <Response at ... 200 OK>
   
-  >>> from repoze.bfg.skins import get_skin_template
-  >>> template = get_skin_template(
-  ...     context, IRequest, u"hello")
-
-  >>> template.path
-  u'.../tests/templates/hello.pt'
-  
-The template provides a ``render`` method.
-  
-  >>> print template.render(context, request)
+  >>> print render_skin_template(
+  ...     context, request, u"hello")
   <html xmlns="http://www.w3.org/1999/xhtml">
     <span>Hello,</span>
     <span>world!</span>
   </html>
-
-View templates
---------------
-
-If we provide the ``IView`` interface, 
-
-The most simple registration makes templates available for any context
-and any request type.
-
-  >>> xmlconfig(StringIO(zcml_template % ("""\
-  ...   <bfg:templates
-  ...     directory="%s/tests/templates"
-  ...     permission="some_permission"
-  ...     provides="repoze.bfg.interfaces.IView"
-  ...   />""" % path)))
-
-We may now render the template as a view.
+  
+Skin templates are directly available as views.
 
   >>> from repoze.bfg.view import render_view
   >>> print render_view(context, request, u"hello")
@@ -98,7 +101,15 @@ We may now render the template as a view.
     <span>world!</span>
   </html>
 
-A view permission will have been registered for the view.
+We may optionally protect views with a permission.
+
+  >>> xmlconfig(StringIO(zcml_template % ("""\
+  ...   <bfg:templates
+  ...     directory="%s/tests/templates"
+  ...     permission="some_permission"
+  ...   />""" % path)))
+
+To verify, let's query the registered view permission.
 
   >>> from repoze.bfg.interfaces import IViewPermission
   >>> component.queryMultiAdapter(
@@ -141,16 +152,10 @@ Now fire the ``INewRequest`` event.
 
 The template should now be available:
 
-  >>> print component.getMultiAdapter(
+  >>> component.getMultiAdapter(
   ...    (context, request), ISkinTemplate, name=u"new")
-  200 OK
-  content-type: text/html; charset=UTF-8
-  Content-Length: ...
-  <html xmlns="http://www.w3.org/1999/xhtml">
-    <span>Hello,</span>
-    <span>world!</span>
-  </html>
-
+  <repoze.bfg.skins.template.SkinTemplate object at ...>
+  
 Skin API
 --------
 
@@ -161,15 +166,9 @@ Libraries and applications can register APIs for use in templates.
   >>> class MyApi(SkinApi):
   ...     hello = u"world"
   
-  >>> from repoze.bfg.skins.interfaces import ISkinTemplate
-  >>> component.provideAdapter(
-  ...     MyApi, name="test")
-
-  >>> print component.getMultiAdapter(
-  ...    (context, request), ISkinTemplate, name=u"api")
-  200 OK
-  content-type: text/html; charset=UTF-8
-  Content-Length: ...
+  >>> component.provideAdapter(MyApi, name="test")
+  >>> print render_skin_template(
+  ...     context, request, u"api")
   <html xmlns="http://www.w3.org/1999/xhtml">
     Hello, world!
   </html>

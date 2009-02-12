@@ -19,8 +19,8 @@ class ISkinTemplate(interface.Interface):
     could be a title and a description, or a icon that gives a visual
     representation for the template.""")
 
-    def render(context, request):
-        """Render the template and return a unicode string."""
+    def __call__(context, request):
+        """Returns a bound skin template instance."""
 
     def get_api(name):
         """Look up skin api by name."""
@@ -28,10 +28,21 @@ class ISkinTemplate(interface.Interface):
     def get_macro(name):
         """Look up skin macro by name."""
 
-class ISkinMacro(ISkinTemplate):
-    """Skin template components provide this interface by default,
-    which enables them for use as macros."""
-        
+class IBoundSkinTemplate(ISkinTemplate):
+    """Bound to a context and request."""
+
+    def __call__(**kwargs):
+        """Renders template to a response object."""
+
+    def render(**kwargs):
+        """Renders template to a unicode string."""
+
+class ISkinTemplateView(IView):
+    """A view which renders a skin template."""
+
+    template = interface.Attribute(
+        """The skin template object.""")
+    
 class ISkinApi(interface.Interface):
     """A helper component available to skin templates. Skin APIs
     should be registered as named components adapting on (context,

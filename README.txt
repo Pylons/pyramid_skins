@@ -5,9 +5,12 @@ Overview
 templates (ZPT) as components; we'll refer to these templates as "skin
 templates".
 
-Templates registered using this framework double as template macros in
-the sense that a mechanism is exposed to easily look up and render a
-skin template as a macro from inside a template.
+Templates registered using this framework are available as individual
+components within the component architecture and as views, which are
+readily available for rendering through the router.
+
+Any skin template may also be invoked as a macro using the METAL
+template language.
 
 Package configuration
 ---------------------
@@ -24,10 +27,15 @@ Registering templates
 Once you've included the ``repoze.bfg.skins`` ZCML, you may use the
 ZCML directive ``<bfg:templates>`` to register a directory with
 templates and make them available as view components, complete with
-security and adaptation::
+view security and component adaptation, e.g.::
 
   <bfg:templates
-     directory="templates"/>
+     for="*"
+     request_type="IGetRequest"
+     permission="manage"
+     content_type="text/html+xml"
+     directory="templates"
+     />
 
 The ``directory`` parameter indicates a package-relative path that
 should point at a filesystem directory containing ``chameleon.zpt``
@@ -36,42 +44,15 @@ the directory (recursively) becomes a component with a name based on
 the relative path to the template file (minus the extension, directory
 separators are replaced with a dot).
 
-Note that templates will only be available as traversable views if you
-explicitly name the ``IView`` interface::
-
-  <bfg:templates
-     provides="repoze.bfg.interfaces.IView"
-     directory="templates"/>
-     
-Skin template components are callables and return a WSGI response
-object (like all ``repoze.bfg`` views).
-
-You can override which "request type" the skin is for by using the
-``request_type`` attribute::
-
-  <bfg:templates
-     request_type="mypackage.interfaces.MyRequestType"
-     directory="templates"/>
-
 See the `repoze.bfg view request type documentation
 <http://static.repoze.org/bfgdocs/narr/views.html#view-request-types>`_
 for more information on request types.
 
-If you want to protect your templates with a specific permission, you
-may as well by using the ``permission`` directive::
+Bound skin template components (as retrieved by component lookup) are
+callables and return a WSGI response object (like all ``repoze.bfg``
+views).
 
-  <bfg:templates
-     permission="view"
-     directory="templates"/>
-
-If you want the templates to only be displayed for specific context
-(model) types, use the for parameter::
-
-  <bfg:templates
-     for="myproject.models.MyModel"
-     directory="templates"/>
-
-The ``provides``, ``request_type``, ``permission`, and ``for``
+The ``content_type``, ``request_type``, ``permission`, and ``for``
 parameters are all optional.
 
 Macro support
@@ -95,7 +76,7 @@ A more elaborate example demonstrating macro slot support::
       <span>
    </div>
 
-Providing custom skin APIs 
+Providing custom skin APIs
 --------------------------
 
 Helper utilities can be registered as skin apis and pulled in using

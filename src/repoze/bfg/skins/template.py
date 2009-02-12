@@ -5,36 +5,30 @@ from zope import interface
 from zope import component
 
 from repoze.bfg.interfaces import IRequest
+
 from chameleon.zpt.template import PageTemplateFile
 
 from interfaces import ISkinApi
 from interfaces import ISkinApiMethod
-from interfaces import ISkinMacro
 from interfaces import ISkinTemplate
+from interfaces import ISkinTemplateView
+from interfaces import IBoundSkinTemplate
 
 from copy import copy
 
-def get_skin_macro(context, request_type, name):
-    return component.getSiteManager().adapters.lookup(
-        (interface.providedBy(context), request_type), 
-        ISkinMacro, name=name)
-
-def get_skin_template(context, request_type, name):
-    return component.getSiteManager().adapters.lookup(
-        (interface.providedBy(context), request_type), 
-        ISkinTemplate, name=name)
+def get_skin_template(context, request, name):
+    return component.queryMultiAdapter(
+        (context, request), ISkinTemplate, name=name)
 
 def render_skin_template_to_response(context, request, name, **kwargs):
-    template = get_skin_template(
-        context, interface.providedBy(request), name)
+    template = get_skin_template(context, request, name)
     if template is not None:
-        return template(context, request, **kwargs)
+        return template(**kwargs)
 
 def render_skin_template(context, request, name, **kwargs):
-    response = render_skin_template_to_response(
-        context, request, name, **kwargs)
-    if response is not None:
-        return response.body
+    template = get_skin_template(context, request, name)
+    if template is not None:
+        return template.render(**kwargs)
 
 class SkinTemplate(object):
     interface.implements(ISkinTemplate)
@@ -48,12 +42,6 @@ class SkinTemplate(object):
         self.path = path
         self.content_type = content_type
         
-    def __call__(self, context, request, **kwargs):
-        """Render and return a WebOb response."""
-
-        return webob.Response(
-            self.render(context, request, **kwargs), content_type=self.content_type)
-
     def __eq__(self, other):
         return self.template is other.template
 
@@ -76,6 +64,12 @@ class SkinTemplate(object):
         
         raise AttributeError(name)
 
+    def __call__(self, context=None, request=None, **kwargs):
+        if IBoundSkinTemplate.providedBy(self):
+            return webob.Response(
+                self.render(**kwargs), content_type=self.content_type)
+        return self.bind(context, request)
+    
     @property
     def macros(self):
         return self.template.macros
@@ -87,14 +81,16 @@ class SkinTemplate(object):
         template = copy(self)
         template.context = context
         template.request = request
+        interface.alsoProvides(template, IBoundSkinTemplate)
         return template
     
-    def render(self, context, request, **kwargs):
+    def render(self, **kwargs):
         """Bind and render template."""
 
+        assert IBoundSkinTemplate.providedBy(self)
+
         return self.template(
-            context=context, request=request,
-            template=self.bind(context, request), **kwargs)
+            context=self.context, request=self.request, template=self, **kwargs)
 
     def get_api(self, name, context=None):
         """Look up skin api by name."""
@@ -120,17 +116,28 @@ class SkinTemplate(object):
                 context=context, request=self.request,
                 template=self.bind(context, self.request))[""]
 
-        macro = get_skin_macro(
-            context, interface.providedBy(self.request), name)
-        if macro is None:
+        template = get_skin_template(
+            context, self.request, name)
+        if template is None:
             raise component.ComponentLookupError(
                 "Unable to look up skin macro: %s." % repr(name))
             
-        if macro == self:
+        if template == self:
             raise RuntimeError(
                 "Macro is equal to calling template.")
                 
-        return macro.bind(context, self.request).get_macro()
+        return template.get_macro()
+
+class SkinTemplateView(object):
+    interface.implements(ISkinTemplateView)
+
+    def __init__(self, template):
+        self.template = template
+        
+    def __call__(self, context, request):
+        """Render and return a WebOb response."""
+
+        return self.template.bind(context, request)()
 
 class SkinApi(object):
     """Base class for skin template helper APIs."""
