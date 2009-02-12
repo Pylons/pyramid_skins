@@ -3,6 +3,7 @@ import webob
 
 from zope import interface
 from zope import component
+from zope.component.interfaces import ComponentLookupError
 
 from repoze.bfg.interfaces import IRequest
 
@@ -25,7 +26,28 @@ def get_skin_template(context, request, name, request_type=None):
         (interface.providedBy(context), request_type), 
         ISkinTemplate, name=name)
 
-    return factory(context, request)
+    if factory is not None:
+        return factory(context, request)
+
+    msg = "Unable to look up skin template '%s' for provided = %s." % (
+        name, repr((context, request)))
+    
+    raise ComponentLookupError(msg)
+
+def get_skin_template_view(context, request, name, request_type=None):
+    if request_type is None:
+        request_type = interface.providedBy(request)
+        
+    view = component.getSiteManager().adapters.lookup(
+        (interface.providedBy(context), request_type), 
+        ISkinTemplateView, name=name)
+
+    if view is None:
+        msg = "Unable to look up skin template view '%s' for provided = %s." % (
+            name, repr((context, request)))
+        raise ComponentLookupError(msg)
+
+    return view
 
 def render_skin_template_to_response(context, request, name, **kwargs):
     template = get_skin_template(context, request, name)
@@ -53,6 +75,8 @@ class SkinTemplate(object):
         return self.template is other.template
 
     def __getattr__(self, name):
+        assert IBoundSkinTemplate.providedBy(self)
+        
         if name.startswith('get_'):
             method = component.queryMultiAdapter(
                 (self.context, self.request, self),
@@ -67,6 +91,7 @@ class SkinTemplate(object):
             
             if method is None:
                 raise AttributeError(name)
+            
             return method
         
         raise AttributeError(name)
@@ -89,6 +114,7 @@ class SkinTemplate(object):
         template.context = context
         template.request = request
         interface.alsoProvides(template, IBoundSkinTemplate)
+        
         return template
     
     def render(self, **kwargs):
@@ -102,26 +128,25 @@ class SkinTemplate(object):
     def get_api(self, name, context=None):
         """Look up skin api by name."""
 
+        assert IBoundSkinTemplate.providedBy(self)
+        
         if context is None:
             context = self.context
-            
-        assert self.request is not None
 
         return component.getMultiAdapter(
             (context, self.request, self), ISkinApi, name=name)
     
     def get_macro(self, name=None, context=None):
         """Look up skin macro by name."""
+
+        assert IBoundSkinTemplate.providedBy(self)
         
         if context is None:
             context = self.context
 
-        assert self.request is not None
-
         if name is None:
             return self.template.macros.bind(
-                context=context, request=self.request,
-                template=self.bind(context, self.request))[""]
+                context=context, request=self.request, template=self)[""]
 
         template = get_skin_template(
             context, self.request, name)
@@ -136,15 +161,18 @@ class SkinTemplate(object):
         return template.get_macro()
 
 class SkinTemplateView(object):
-    interface.implements(ISkinTemplateView)
+    interface.implementsOnly(ISkinTemplateView)
 
-    def __init__(self, template):
-        self.template = template
+    def __init__(self, path, content_type=None):
+        self.template = SkinTemplate(path, content_type=content_type)
+
+    def __call__(self, context=None, request=None, **kwargs):
+        template = self.template.bind(context, request)
+        return template(**kwargs)
         
-    def __call__(self, context, request):
-        """Render and return a WebOb response."""
-
-        return self.template.bind(context, request)()
+    def render(self, context, request, **kwargs):
+        template = self.template.bind(context, request)
+        return template.render(**kwargs)
 
 class SkinApi(object):
     """Base class for skin template helper APIs."""

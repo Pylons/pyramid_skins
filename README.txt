@@ -6,8 +6,8 @@ templates (ZPT) as components; we'll refer to these templates as "skin
 templates".
 
 Templates registered using this framework are available as individual
-components within the component architecture and as views, which are
-readily available for rendering through the router.
+components within the component architecture and optionally as views,
+which are readily available for rendering through the router.
 
 Any skin template may also be invoked as a macro using the METAL
 template language.
@@ -26,14 +26,9 @@ Registering templates
 
 Once you've included the ``repoze.bfg.skins`` ZCML, you may use the
 ZCML directive ``<bfg:templates>`` to register a directory with
-templates and make them available as view components, complete with
-view security and component adaptation, e.g.::
+templates and make them available as template components, e.g.::
 
   <bfg:templates
-     for="*"
-     request_type="IGetRequest"
-     permission="manage"
-     content_type="text/html+xml"
      directory="templates"
      />
 
@@ -44,16 +39,24 @@ the directory (recursively) becomes a component with a name based on
 the relative path to the template file (minus the extension, directory
 separators are replaced with a dot).
 
+Optional parameters are ``content_type``, ``request_type``,
+``permission`, ``class`` and ``for``.
+
 See the `repoze.bfg view request type documentation
 <http://static.repoze.org/bfgdocs/narr/views.html#view-request-types>`_
 for more information on request types.
 
-Bound skin template components (as retrieved by component lookup) are
-callables and return a WSGI response object (like all ``repoze.bfg``
-views).
+Using the ``class`` parameter, the components registered may be
+traversable views::
 
-The ``content_type``, ``request_type``, ``permission`, and ``for``
-parameters are all optional.
+  <bfg:templates
+     directory="templates"
+     class="repoze.bfg.skins.SkinTemplateView"
+     permission="some_permission"
+     />
+
+Each template will be registered as a traversable view component,
+optionally protected by a permission.
 
 Macro support
 -------------

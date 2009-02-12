@@ -1,5 +1,4 @@
 from zope import interface
-
 from repoze.bfg.interfaces import IView
 
 class ISkinTemplate(interface.Interface):
@@ -35,14 +34,23 @@ class IBoundSkinTemplate(ISkinTemplate):
         """Renders template to a response object."""
 
     def render(**kwargs):
-        """Renders template to a unicode string."""
+        """Renders template to a unicode string, passing optional
+        keyword-arguments."""
 
 class ISkinTemplateView(IView):
-    """A view which renders a skin template."""
+    """When skin templates are set to provide one or more interfaces,
+    a component providing this interface will be registered."""
 
     template = interface.Attribute(
         """The skin template object.""")
-    
+
+    def __call__():
+        """Renders template to a response object."""
+
+    def render(**kwargs):
+        """Renders template to a unicode string, passing optional
+        keyword-arguments."""
+
 class ISkinApi(interface.Interface):
     """A helper component available to skin templates. Skin APIs
     should be registered as named components adapting on (context,
