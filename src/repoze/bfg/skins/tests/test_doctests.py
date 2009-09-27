@@ -31,8 +31,9 @@ def tearDown(suite):
         pass
     zope.component.testing.tearDown(suite)
 
+doctests = ("zcml.txt",)
+
 def test_suite():
-    doctests = ("zcml.txt",)
     globs = dict(interface=zope.interface,
                  component=zope.component,
                  path=skins_path,

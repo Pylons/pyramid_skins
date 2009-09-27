@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Next release
+
+  - Made compatible with repoze.bfg 1.1a4.
+
 0.12 (2009-02-12)
 
   - Added convenience method ``get_skin_template_view``. [malthe]

@@ -1,32 +1,23 @@
 import os
 
 from zope import interface
-from zope import component
-from zope.component import getGlobalSiteManager
+from zope.component import getSiteManager
 from zope.component.zcml import handler
 from zope.component.interface import provideInterface
 
 from zope.schema import TextLine
 
-from zope.configuration.fields import \
-     GlobalObject, GlobalInterface, Path
+from zope.configuration.fields import GlobalObject, Path
 from zope.configuration.config import ConfigurationMachine
 
 from repoze.bfg.interfaces import IView
 from repoze.bfg.interfaces import IRequest
 from repoze.bfg.interfaces import INewRequest
-from repoze.bfg.interfaces import IViewPermission
-from repoze.bfg.interfaces import ISettings
 
-from repoze.bfg.security import ViewPermissionFactory
-
-from chameleon.zpt.template import PageTemplateFile
-
-#from interfaces import ISkinTemplate
-#from interfaces import ISkinTemplateView
+from repoze.bfg.settings import get_settings
+from repoze.bfg.zcml import view
 
 from template import SkinTemplate
-from template import SkinTemplateView
 
 def find_templates(path):
     os.lstat(path)
@@ -51,8 +42,8 @@ class DirectoryRegistrationFactory(object):
 
     def __call__(self, event=None, context=None, force_reload=False):
         if force_reload is False:
-            settings = component.queryUtility(ISettings)
-            auto_reload = settings and settings.reload_templates
+            settings = get_settings()
+            auto_reload = settings and settings['reload_templates']
             if not auto_reload:
                 return
 
@@ -61,7 +52,7 @@ class DirectoryRegistrationFactory(object):
         else:
             _context = context
             
-        gsm = getGlobalSiteManager()
+        gsm = getSiteManager()
         
         iface = self.for_ or interface.Interface
         if type(iface) is not interface.interface.InterfaceClass:
@@ -78,10 +69,16 @@ class DirectoryRegistrationFactory(object):
                 instance = self.class_(fullpath)
 
                 if provided.isOrExtends(IView):
+                    view(_context,
+                         self.permission,
+                         self.for_,
+                         view=instance,
+                         name=name,
+                         request_type=self.request_type)
                     component_name = 'view'
                 else:
                     component_name = 'skin_template'
-                
+
                 _context.action(
                     discriminator = (
                         component_name, self.for_, self.class_,
@@ -91,18 +88,6 @@ class DirectoryRegistrationFactory(object):
                             instance, (self.for_, self.request_type),
                             interface.providedBy(instance), name,
                             _context.info),
-                    )
-
-            # register view permission, if needed
-            if provided.isOrExtends(IView) and self.permission:
-                pfactory = ViewPermissionFactory(self.permission)
-                _context.action(
-                    discriminator = ('permission', self.for_, name,
-                                     self.request_type, IViewPermission),
-                    callable = handler,
-                    args = ('registerAdapter',
-                            pfactory, (self.for_, self.request_type),
-                            IViewPermission, name, _context.info),
                     )
 
         # if no configuration context was supplied, execute the actions

@@ -63,7 +63,7 @@ Calling the template returns an HTTP response.
   
   >>> print template()
   200 OK
-  content-type: text/html; charset=UTF-8
+  Content-Type: text/html; charset=UTF-8
   Content-Length: ...
   <BLANKLINE>
   <html xmlns="http://www.w3.org/1999/xhtml">
@@ -137,13 +137,6 @@ We may optionally protect views with a permission.
   ...     permission="some_permission"
   ...   />""" % path)))
 
-To verify, let's query the registered view permission.
-
-  >>> from repoze.bfg.interfaces import IViewPermission
-  >>> component.queryMultiAdapter(
-  ...     (context, request), IViewPermission, name=u"hello")
-  <Permission at ... named u'some_permission' for None>
-
 Note that providing the ``permission`` parameter is only allowed when
 providing the ``IView`` interface.
 
@@ -168,10 +161,8 @@ configuration registry manually.
 
   >>> from repoze.bfg.interfaces import ISettings
   
-  >>> class MockSettings(object):
-  ...     reload_templates = True
-  
-  >>> component.provideUtility(MockSettings(), ISettings)
+  >>> settings = {'reload_templates':True}
+  >>> component.provideUtility(settings, ISettings)
 
 Create a template in the path we register above:
 
