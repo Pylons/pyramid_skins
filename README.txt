@@ -36,8 +36,7 @@ The ``directory`` parameter indicates a package-relative path that
 should point at a filesystem directory containing ``chameleon.zpt``
 templates with the extension ``.pt``.  Each template located inside
 the directory (recursively) becomes a component with a name based on
-the relative path to the template file (minus the extension, directory
-separators are replaced with a dot).
+the relative path to the template file (minus the extension, sub-directories are separated with a slash, i.e. to reach ``templates/foo/bar.pt`` address it with ``templates/foo/bar``.
 
 Optional parameters are ``content_type``, ``request_type``,
 ``permission`, ``class`` and ``for``.
