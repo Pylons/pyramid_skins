@@ -5,8 +5,6 @@ from zope import interface
 from zope import component
 from zope.component.interfaces import ComponentLookupError
 
-from repoze.bfg.interfaces import IRequest
-
 from chameleon.zpt.template import PageTemplateFile
 
 from interfaces import ISkinApi
@@ -176,7 +174,6 @@ class SkinTemplateView(object):
 
 class SkinApi(object):
     """Base class for skin template helper APIs."""
-    
     interface.implements(ISkinApi)
     
     def __init__(self, context, request, template):
