@@ -178,7 +178,6 @@ class SkinApi(object):
     """Base class for skin template helper APIs."""
     
     interface.implements(ISkinApi)
-    component.adapts(interface.Interface, IRequest, ISkinTemplate)
     
     def __init__(self, context, request, template):
         self.context = context

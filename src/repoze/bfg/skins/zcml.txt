@@ -193,12 +193,16 @@ Skin API
 
 Libraries and applications can register APIs for use in templates.
   
+  >>> from zope.interface import Interface
+  >>> from repoze.bfg.skins.interfaces import ISkinTemplate
+  >>> from repoze.bfg.interfaces import IRequest
   >>> from repoze.bfg.skins.template import SkinApi
+  >>> from repoze.bfg.skins.interfaces import ISkinApi
 
   >>> class MyApi(SkinApi):
   ...     hello = u"world"
   
-  >>> component.provideAdapter(MyApi, name="test")
+  >>> component.provideAdapter(MyApi, (Interface, IRequest, ISkinTemplate), ISkinApi, name="test")
   >>> print render_skin_template(
   ...     context, request, u"api")
   <html xmlns="http://www.w3.org/1999/xhtml">

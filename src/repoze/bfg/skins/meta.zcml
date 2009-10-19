@@ -1,7 +1,8 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
-    xmlns:meta="http://namespaces.zope.org/meta">
-  
+    xmlns:meta="http://namespaces.zope.org/meta"
+    xmlns:bfg="http://namespaces.repoze.org/bfg">
+
   <meta:directives namespace="http://namespaces.repoze.org/bfg">
     
     <meta:directive
@@ -11,5 +12,14 @@
        />
     
   </meta:directives>
+
+  <include package="repoze.bfg.includes"/>
+
+  <bfg:adapter
+     factory=".template.SkinApi"
+     provides="repoze.bfg.skins.interfaces.ISkinApi"
+     for="* 
+          repoze.bfg.interfaces.IRequest
+          repoze.bfg.skins.interfaces.ISkinTemplate"/>
   
 </configure>
