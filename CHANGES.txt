@@ -5,6 +5,9 @@ Next release
 
   - Made compatible with repoze.bfg 1.1a4.
 
+  - Disuse ``component.adapts`` (unuseable in any BFG app), to make
+    compatible with repoze.bfg 1.1a6+.
+
 0.12 (2009-02-12)
 
   - Added convenience method ``get_skin_template_view``. [malthe]
