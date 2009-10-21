@@ -83,9 +83,8 @@ class DirectoryRegistrationFactory(object):
                     discriminator = (
                         component_name, self.for_, self.class_,
                         name, self.request_type),
-                    callable = handler,
-                    args = ('registerAdapter',
-                            instance, (self.for_, self.request_type),
+                    callable = gsm.registerAdapter,
+                    args = (instance, (self.for_, self.request_type),
                             interface.providedBy(instance), name,
                             _context.info),
                     )
