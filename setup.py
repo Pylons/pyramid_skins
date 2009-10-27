@@ -15,13 +15,15 @@
 import os
 from setuptools import setup, find_packages
 
-def read(*rnames):
-    return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
+here = os.path.abspath(os.path.dirname(__file__))
+README = open(os.path.join(here, 'README.txt')).read()
+USAGE = open(os.path.join(here, 'src', 'repoze', 'bfg', 'skins', 'README.txt')).read()
+CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 setup(name='repoze.bfg.skins',
-      version = '0.12',
-      description='Skin templates for repoze.bfg',
-      long_description=read('README.txt'),
+      version = '0.13',
+      description='Skin support for BFG.',
+      long_description="\n\n".join((README, USAGE, CHANGES)),
       keywords = "zope3 repoze bfg",
       classifiers = [
           'Development Status :: 4 - Beta',
@@ -33,19 +35,19 @@ setup(name='repoze.bfg.skins',
           'Operating System :: OS Independent',
           'Topic :: Internet :: WWW/HTTP',
           'Framework :: Zope3'],
-      license='ZPL 2.1',
+      license='BSD',
       packages=find_packages('src'),
       package_dir = {'': 'src'},
       namespace_packages=['repoze', 'repoze.bfg'],
       install_requires=['setuptools',
                         'zope.interface',
-                        'zope.schema',
                         'zope.component',
                         'zope.configuration',
-                        'zope.security',
+                        'zope.testing',
                         'repoze.bfg',
-                        'chameleon.zpt>=1.0b9',
-                        ],  
+                        'chameleon.zpt>=1.1',
+                        ],
       include_package_data = True,
       zip_safe = False,
+      test_suite="repoze.bfg.skins.tests",
       )

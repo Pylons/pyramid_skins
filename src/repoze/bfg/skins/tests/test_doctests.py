@@ -1,55 +1,48 @@
-import os
-
-import zope.interface
-import zope.component
-import zope.testing
-
 import unittest
+import doctest
 
-OPTIONFLAGS = (zope.testing.doctest.ELLIPSIS |
-               zope.testing.doctest.NORMALIZE_WHITESPACE)
+OPTIONFLAGS = (doctest.ELLIPSIS |
+               doctest.NORMALIZE_WHITESPACE |
+               doctest.REPORT_ONLY_FIRST_FAILURE)
 
-import zope.component
-import zope.component.testing
-import zope.configuration.xmlconfig
+class DoctestCase(unittest.TestCase):
+    def __new__(self, test):
+        return getattr(self, test)()
 
-import repoze.bfg.skins
+    @classmethod
+    def test_readme(cls):
+        return doctest.DocFileSuite(
+            'README.txt',
+            optionflags=OPTIONFLAGS,
+            setUp=cls.setUp,
+            tearDown=cls.tearDown,
+            package='repoze.bfg.skins')
 
-import chameleon.zpt
+    @staticmethod
+    def setUp(test):
+        import repoze.bfg.testing
+        repoze.bfg.testing.setUp()
 
-def setUp(suite):
-    zope.component.testing.setUp(suite)
-    zope.configuration.xmlconfig.XMLConfig('configure.zcml', chameleon.zpt)()
+        import zope.component
+        registry = zope.component.getSiteManager()
 
-skins_path = repoze.bfg.skins.__path__[0]
-new_template_path = os.path.join(skins_path, "tests", "templates", "new.pt")
+        from repoze.bfg.threadlocal import manager
+        info = manager.get().copy()
+        manager.push(info)
+        info['registry'] = registry
 
-def tearDown(suite):
-    try:
-        os.unlink(new_template_path)
-    except OSError:
-        pass
-    zope.component.testing.tearDown(suite)
+        import repoze.bfg.configuration
+        import repoze.bfg.skins
 
-doctests = ("zcml.txt",)
+        repoze.bfg.configuration.make_registry(
+            None, package=repoze.bfg.skins, registry=registry)
 
-def test_suite():
-    globs = dict(interface=zope.interface,
-                 component=zope.component,
-                 path=skins_path,
-                 new_template_path=new_template_path,
-                 os=os)
+        assert zope.component.getSiteManager() is registry
 
+    @staticmethod
+    def tearDown(test):
+        from repoze.bfg.threadlocal import manager
+        manager.pop()
 
-    return unittest.TestSuite(
-        [zope.testing.doctest.DocFileSuite(
-                doctest,
-                optionflags=OPTIONFLAGS,
-                setUp=setUp,
-                globs=globs,
-                tearDown=tearDown,
-                package="repoze.bfg.skins") for doctest in doctests]
-        )
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')
+        import repoze.bfg.testing
+        repoze.bfg.testing.tearDown()

@@ -3,6 +3,18 @@ Changelog
 
 Next release
 
+  - Rewrite. Backwards-compatibility broken.
+
+    Migration path:
+
+    Skins registrartion directive renamed to <bfg:skins>.
+
+    To register views for skin objects, the <bfg:view> directive
+    should be used inside a <bfg:skins> declaration. See
+    documentation.
+
+    Previous users should consult documentation for more information.
+
   - Made compatible with repoze.bfg 1.1a4.
 
   - Disuse ``component.adapts`` (unuseable in any BFG app), to make

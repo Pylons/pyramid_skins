@@ -1,5 +1,0 @@
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:metal="http://xml.zope.org/namespaces/metal">
-  <span>Hello,</span>
-  <span metal:use-macro="template.get_macro('world')" />
-</html>

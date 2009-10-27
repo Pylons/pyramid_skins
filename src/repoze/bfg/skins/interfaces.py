@@ -1,6 +1,18 @@
 from zope import interface
 from repoze.bfg.interfaces import IView
 
+class ISkinObject(interface.Interface):
+    name = interface.Attribute(
+        """Component name.""")
+
+    def refresh():
+        """Refresh object from file on disk (reload)."""
+
+class ISkinObjectFactory(interface.Interface):
+    def component_name(relative_path):
+        """Returns a component name. This method must be a
+        class- or static method."""
+
 class ISkinTemplate(interface.Interface):
     """Skin templates are page templates which reside in a skin
     directory. These are registered as named components adapting on

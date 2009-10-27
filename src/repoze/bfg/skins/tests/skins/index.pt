@@ -1,0 +1,5 @@
+<html metal:define-macro="main">
+  <body metal:define-slot="body">
+    Hello, world!
+  </body>
+</html>

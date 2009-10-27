@@ -1,25 +1,21 @@
 <configure
-    xmlns="http://namespaces.zope.org/zope"
-    xmlns:meta="http://namespaces.zope.org/meta"
-    xmlns:bfg="http://namespaces.repoze.org/bfg">
+    xmlns="http://namespaces.repoze.org/bfg"
+    xmlns:meta="http://namespaces.zope.org/meta">
 
   <meta:directives namespace="http://namespaces.repoze.org/bfg">
-    
-    <meta:directive
-       name="templates"
-       schema=".zcml.ITemplatesDirective"
-       handler=".zcml.templates"
+
+    <meta:complexDirective
+       name="skins"
+       schema=".zcml.ISkinDirective"
+       handler=".zcml.skins">
+
+    <meta:subdirective
+       name="view"
+       schema="repoze.bfg.zcml.IViewDirective"
        />
-    
+
+    </meta:complexDirective>
+
   </meta:directives>
 
-  <include package="repoze.bfg.includes"/>
-
-  <bfg:adapter
-     factory=".template.SkinApi"
-     provides="repoze.bfg.skins.interfaces.ISkinApi"
-     for="* 
-          repoze.bfg.interfaces.IRequest
-          repoze.bfg.skins.interfaces.ISkinTemplate"/>
-  
 </configure>

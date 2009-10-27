@@ -2,8 +2,10 @@ import os
 
 from zope import interface
 from zope.component import getSiteManager
+from zope.component import queryUtility
 from zope.component.zcml import handler
 from zope.component.interface import provideInterface
+from zope.configuration.config import expand_action
 
 from zope.schema import TextLine
 
@@ -15,121 +17,90 @@ from repoze.bfg.interfaces import IRequest
 from repoze.bfg.interfaces import INewRequest
 
 from repoze.bfg.settings import get_settings
-from repoze.bfg.zcml import view
+from repoze.bfg.zcml import view as register_bfg_view
 
-from template import SkinTemplate
+from repoze.bfg.skins.models import SkinObject
+from repoze.bfg.skins.interfaces import ISkinObject
+from repoze.bfg.skins.interfaces import ISkinObjectFactory
 
-def find_templates(path):
+def walk(path):
     os.lstat(path)
-    for dirpath, dirs, filenames in os.walk(path):
+    for dir_path, dirs, filenames in os.walk(path):
         for filename in filenames:
-            if filename.endswith(".pt"):
-                fullpath = os.path.join(dirpath, filename)
-                rel_path = fullpath[len(path)+1:]
-                # the template name is given by the relative path
-                # where the path separator is replaced by a dot '.'
-                # and the file extension removed
-                name = os.path.splitext(rel_path.replace(os.path.sep, '/'))[0]
-                yield name, fullpath
+            full_path = os.path.join(dir_path, filename)
+            rel_path = full_path[len(path)+1:]
+            yield rel_path.replace(os.path.sep, '/'), str(full_path)
 
-class DirectoryRegistrationFactory(object):
-    def __init__(self, directory, for_, class_, request_type, permission):
-        self.directory = directory
-        self.for_ = for_
-        self.permission = permission
-        self.class_ = class_
-        self.request_type = request_type
+def register_skin_object(relative_path, path):
+    gsm = getSiteManager()
+    ext = os.path.splitext(path)[1]
+    factory = gsm.queryUtility(ISkinObjectFactory, name=ext) or \
+              SkinObject
 
-    def __call__(self, event=None, context=None, force_reload=False):
-        if force_reload is False:
-            settings = get_settings()
-            auto_reload = settings and settings['reload_templates']
-            if not auto_reload:
-                return
+    name = factory.component_name(relative_path)
+    inst = gsm.queryUtility(ISkinObject, name=name)
 
-        if context is None:
-            _context = ConfigurationMachine()
-        else:
-            _context = context
-            
-        gsm = getSiteManager()
-        
-        iface = self.for_ or interface.Interface
-        if type(iface) is not interface.interface.InterfaceClass:
-            iface = interface.implementedBy(iface)
+    if inst is not None:
+        inst.path = path
+        inst.refresh()
+    else:
+        inst = factory(relative_path, path)
+        gsm.registerUtility(inst, ISkinObject, name)
 
-        # determine which (sole) interface the class provides
-        provided = tuple(interface.implementedBy(self.class_))[0]
+def register_skin_view(relative_path, path, kwargs):
+    gsm = getSiteManager()
 
-        for name, fullpath in find_templates(self.directory):
-            instance = gsm.adapters.lookup(
-                (iface, self.request_type), provided, name=name)
-            
-            if instance is None:
-                instance = self.class_(fullpath)
+    inst = None
+    for inst in gsm.getAllUtilitiesRegisteredFor(ISkinObject):
+        if inst.path == path:
+            break
 
-                if provided.isOrExtends(IView):
-                    view(_context,
-                         self.permission,
-                         self.for_,
-                         view=instance,
-                         name=name,
-                         request_type=self.request_type)
-                    component_name = 'view'
-                else:
-                    component_name = 'skin_template'
+    assert inst is not None
+    name = type(inst).component_name(relative_path).replace('/', '_')
 
-                _context.action(
-                    discriminator = (
-                        component_name, self.for_, self.class_,
-                        name, self.request_type),
-                    callable = gsm.registerAdapter,
-                    args = (instance, (self.for_, self.request_type),
-                            interface.providedBy(instance), name,
-                            _context.info),
-                    )
+    context = ConfigurationMachine()
+    register_bfg_view(
+        context, name=name, view=inst, **kwargs)
+    context.execute_actions()
 
-        # if no configuration context was supplied, execute the actions
-        if context is None:
-            _context.execute_actions()
+class skins(object):
+    def __init__(self, context, path):
+        self.context = context
+        self.path = path
+        self.views = []
 
-def templates(_context, directory, for_=None, request_type=IRequest,
-              class_=SkinTemplate, permission=None, content_type=None):
-    # verify that class implements exactly one interface
-    implements = tuple(interface.implementedBy(class_))
-    if len(implements) != 1:
-        raise TypeError(
-            "Class '%s' must implement exactly one interface.")
+    def __call__(self):
+        for skin in iter(self):
+            yield skin
+        for view in self.views:
+            yield view
 
-    # if a permission is required, make sure we're registering a view;
-    # otherwise, it makes no sense and we should raise an error
-    if permission is not None and not implements[0].isOrExtends(IView):
-        raise ValueError(
-            "Can only require permission when a view is provided.")
+    def __iter__(self):
+        for relative_path, path in walk(self.path):
+            yield (relative_path, path, ISkinObject), \
+                  register_skin_object, \
+                  (relative_path, path)
 
-    if for_ is not None:
-        _context.action(
-            discriminator = None,
-            callable = provideInterface,
-            args = ('', for_)
-            )
+    def view(self, context, **kwargs):
+        assert 'name' not in kwargs
+        for relative_path, path in walk(self.path):
+            view = (relative_path, path, ISkinObject,) + \
+                   (kwargs.get('name'), kwargs.get('request_type'),
+                    kwargs.get('route_name'), kwargs.get('request_method'),
+                    kwargs.get('request_param'), kwargs.get('containment'),
+                    kwargs.get('attr'), kwargs.get('renderer'),
+                    kwargs.get('wrapper'), kwargs.get('xhr'),
+                    kwargs.get('accept'), kwargs.get('header'),
+                    kwargs.get('path_info')), \
+                    register_skin_view, \
+                    (relative_path, path, kwargs)
+            self.views.append(view)
 
-    # we register a separate handler to register the templates; we
-    # will call it immediately and with every new request (in order to
-    # pick up new templates on the fly, if the ``reload_templates``
-    # setting is set).
-    factory = DirectoryRegistrationFactory(
-        directory, for_, class_, request_type, permission)
-    
-    _context.action(
-        discriminator = ('registerHandler', id(factory),
-                         class_, INewRequest),
-        callable = handler,
-        args = ('registerHandler', factory, (INewRequest,), '', '',
-                False),
-        )
-
-    factory(context=_context, force_reload=True)
+class ISkinDirective(interface.Interface):
+    path = Path(
+        title=u"Path",
+        description=u"Path to the directory containing the skin.",
+        required=True)
 
 class ITemplatesDirective(interface.Interface):
     directory = Path(

@@ -1,114 +1,152 @@
 Overview
 ========
 
-``repoze.bfg.skins`` provides a framework to register file-system page
-templates (ZPT) as components; we'll refer to these templates as "skin
-templates".
+This package provides a framework to make files in a directory
+structure available as *skin* components (the term originates from the
+CMF package which provides comparable functionality on Zope 2).
 
-Templates registered using this framework are available as individual
-components within the component architecture and optionally as views,
-which are readily available for rendering through the router.
+There's built-in integration with routes, views and components.
 
-Any skin template may also be invoked as a macro using the METAL
-template language.
+About
+-----
 
-Package configuration
----------------------
+The package is written and maintained by `Malthe Borch
+<mailto:mborch@gmail.com>`_ and `Stefan Eletzhofer
+<stefan.eletzhofer@inquant.de>`_. Available as-is under the BSD license.
 
-Within your repoze.bfg application package, include the ZCML
-configuration by adding the following statement to your
-project's ``configure.zcml`` file::
+To contribute or get support for this package, please visit the
+#repoze channel on freenode irc or write to the `repoze-dev mailinglist <repoze-dev@lists.repoze.org>`_.
 
-  <include package="repoze.bfg.skins" file="meta.zcml"/>
+Usage
+=====
 
-Registering templates
----------------------
+The package allows configuration using the ZCML language. The ``skin``
+directive is defined in the ``meta.zcml`` file::
+
+  <include package="repoze.bfg.skins" file="meta.zcml" />
+
+To configure all the included components (recommended), include the
+package instead::
+
+  <include package="repoze.bfg.skins" />
+
+Application setup
+-----------------
 
 Once you've included the ``repoze.bfg.skins`` ZCML, you may use the
-ZCML directive ``<bfg:templates>`` to register a directory with
-templates and make them available as template components, e.g.::
+ZCML-directive ``<bfg:skins>`` to register a directory with templates
+and make them available as template components, e.g.:::
 
-  <bfg:templates
-     directory="templates"
+  <bfg:skins path="skins" />
+
+The ``path`` parameter indicates a relative path which contains the
+skin object files.
+
+The ``skins`` directive makes available skin components for use in
+library code. The default factory (see Factories_) simply uses the
+relative path as the component name; some factories may strip off the
+file extension (this is the case for the page template factory).
+
+To expose the contents of a skin directory as *views*,
+we can insert a ``view`` registration directive into the ``skins``
+directive::
+
+  <bfg:skins path="skins">
+     <bfg:view />
+  </bfg:skins>
+
+The ``view`` directive has no required attributes, but all the
+attributes which are applicable for the standalone directive [#]_ are
+available, except ``name`` which is defined by the component and
+``view`` which is given by the skin object.
+
+.. note:: Views are registered using the component name. However, the directory separator character ("/") is replaced by an underscore (e.g. "document/view.pt" becomes "document_view").
+
+.. [#] See the `repoze.bfg view request type documentation <http://static.repoze.org/bfgdocs/narr/views.html#view-request-types>`_ for more information on request types.
+
+Routes integration
+------------------
+
+Every skin component corresponds to a relative path. We can configure a
+route to map a subpath to skin components for which a view is
+registered::
+
+  <route
+     name="skins"
+     path="/content/*subpath"
+     factory="repoze.bfg.skins.RoutesTraverserFactory"
      />
 
-The ``directory`` parameter indicates a package-relative path that
-should point at a filesystem directory containing ``chameleon.zpt``
-templates with the extension ``.pt``.  Each template located inside
-the directory (recursively) becomes a component with a name based on
-the relative path to the template file (minus the extension, sub-directories are separated with a slash, i.e. to reach ``templates/foo/bar.pt`` address it with ``templates/foo/bar``.
+This traverser will convert the subpath into a view name and let BFG
+render the view if possible.
 
-Optional parameters are ``content_type``, ``request_type``,
-``permission`, ``class`` and ``for``.
+View integration
+----------------
 
-See the `repoze.bfg view request type documentation
-<http://static.repoze.org/bfgdocs/narr/views.html#view-request-types>`_
-for more information on request types.
+Skin components are registered as named utilities. We can use the
+``getUtility`` function to retrieve a skin component by name.
 
-Using the ``class`` parameter, the components registered may be
-traversable views::
+For convenience, the ``SkinObject`` class doubles as a descriptor
+which can be used as a class attribute; it uses a ``getUtility`` call
+when accessed::
 
-  <bfg:templates
-     directory="templates"
-     class="repoze.bfg.skins.View"
-     permission="some_permission"
-     />
+  class MyView(object):
+      __call__ = SkinObject("document_view")
 
-Each template will be registered as a traversable view component,
-optionally protected by a permission.
+The weak binding to the skin object makes it easy to depend on skin
+components from library code without a hard dependency.
 
-Macro support
--------------
+.. _Factories:
 
-Templates are also available as METAL macros using the function
-``get_macro`` which is available from the ``template`` symbol to all
-skin templates.
+Factories
+=========
 
-The ``template`` symbol is tied to the current context and
-request. The usage of the ``macros`` object is demonstrated below::
+The skin objects are instances of the ``SkinObject`` base class. We
+may associate a custom factory for particular file extensions::
 
-   <div metal:use-macro="template.get_macro('thumbnail')" />
-   <div metal:use-macro="template.get_macro('thumbnail', context)" />
+    class MySkinObject(SkinObject):
+        pass
 
-A more elaborate example demonstrating macro slot support::
+We register the class as a named utility component::
 
-   <div metal:use-macro="template.get_macro('thumbnail')">
-      <span metal:fill-slot="label">
-         This is a thumbnail
-      <span>
-   </div>
+    <utility
+       name=".my"
+       component=".MySkinObject"
+       provides="repoze.bfg.skins.interfaces.ISkinObjectFactory"
+       />
 
-Providing custom skin APIs
---------------------------
+Page template factory
+---------------------
 
-Helper utilities can be registered as skin apis and pulled in using
-the utility function ``get_api``, which is available from the
-``template`` symbol.
+Included with the package is a factory for Zope Page Templates (with
+the file extension ".pt"). The Chameleon rendering engine is used.
 
-They must be registered as named component providing the ``ISkinApi``
-interface, adapting on (context, request, template). A base class is
-provide for convenience:
+Page templates registered as skin objects will be called *skin
+templates*. Support is provided to locate other skin templates and
+include them as macros. This is made pluggable such that applications
+can add additional functionality.
 
-  >>> from repoze.bfg.skins.template import SkinApi
+This package provides a new expression ``skin:`` which will retrieve a
+skin object by name:
 
-To look up a template API, simply use attribute-access on the ``api``
-symbol.
+The skin object factory for page templates provide the ``macros``
+attribute. The following snippet illustrates this::
 
-  <div tal:define="api template.get_api('custom')" />
+  <div
+    tal:define="master skin: main_template"
+    metal:use-macro="master.macros['main']"
+    />
 
-Automatic detection of new template files
------------------------------------------
+The ``route:`` expression maps to the ``route_url`` framework function:
 
-When the global configuration option ``auto_reload`` is set to "true",
-skin templates are found at run-time.
+  <img tal:attributes="src ${route: skins}/images/logo.png" />
 
-Contributors
-------------
+.. [#] See the `repoze.bfg url documentation <http://docs.repoze.org/bfg/1.1/api/url.html#repoze.bfg.url.static_url>`_ for more information on URL generation.
 
-Malthe Borch <mborch@gmail.com>
-Stefan Eletzhofer <stefan.eletzhofer@inquant.de>
+Automatic discovery and reload
+------------------------------
 
-To contribute to development or get support, please visit the #repoze
-channel on freenode irc or write the mailinglist.
-
+When the global setting ``debug`` is set (to any non-trivial value),
+skin objects are discovered at run-time and files are automatically
+reloaded when changed.
 
