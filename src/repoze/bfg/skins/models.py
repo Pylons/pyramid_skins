@@ -1,6 +1,6 @@
-import copy
 import os
 import mimetypes
+import webob
 
 from zope.interface import implements
 from zope.interface import classProvides
@@ -23,7 +23,7 @@ class SkinObject(object):
         if not content_type:
             content_type = 'application/octet-stream'
 
-        response = request.ResponseClass(app_iter=file(self.path))
+        response = webob.Response(app_iter=file(self.path))
         response.content_type = content_type
         return response
 
@@ -48,7 +48,7 @@ class SkinTemplate(SkinObject, PageTemplateFile):
 
     def __call__(self, context, request, **kw):
         result = self.render(context=context, request=request, **kw)
-        response = request.ResponseClass(result)
+        response = webob.Response(result)
         response.content_type = self.content_type or 'text/html'
         return response
 
