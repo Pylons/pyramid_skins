@@ -2,23 +2,12 @@ import os
 
 from zope import interface
 from zope.component import getSiteManager
-from zope.component import queryUtility
-from zope.component.zcml import handler
-from zope.component.interface import provideInterface
-from zope.configuration.config import expand_action
-
 from zope.schema import TextLine
 
 from zope.configuration.fields import GlobalObject, Path
 from zope.configuration.config import ConfigurationMachine
 
-from repoze.bfg.interfaces import IView
-from repoze.bfg.interfaces import IRequest
-from repoze.bfg.interfaces import INewRequest
-
-from repoze.bfg.settings import get_settings
 from repoze.bfg.zcml import view as register_bfg_view
-
 from repoze.bfg.skins.models import SkinObject
 from repoze.bfg.skins.interfaces import ISkinObject
 from repoze.bfg.skins.interfaces import ISkinObjectFactory
@@ -122,7 +111,7 @@ class ITemplatesDirective(interface.Interface):
                      u"default request type is repoze.bfg.interfaces.IRequest"),
         required=False
         )
-    
+
     class_ = GlobalObject(
         title=(u"Skin template class."),
         required=False,
