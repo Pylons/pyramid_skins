@@ -10,8 +10,8 @@
        handler=".zcml.skins">
 
     <meta:subdirective
-       name="view"
-       schema="repoze.bfg.zcml.IViewDirective"
+        name="view"
+        schema=".zcml.ISkinViewDirective"
        />
 
     </meta:complexDirective>

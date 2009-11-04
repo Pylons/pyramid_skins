@@ -60,6 +60,13 @@ attributes which are applicable for the standalone directive [#]_ are
 available, except ``name`` which is defined by the component and
 ``view`` which is given by the skin object.
 
+When wrapped inside ``skins``, an option ``index`` is available to
+allow registering default index views (e.g. index.pt)::
+
+  <bfg:skins path="skins">
+     <bfg:view index="index.pt" />
+  </bfg:skins>
+
 .. note:: Views are registered using the component name. However, the directory separator character ("/") is replaced by an underscore (e.g. "document/view.pt" becomes "document_view").
 
 .. [#] See the `repoze.bfg view request type documentation <http://static.repoze.org/bfgdocs/narr/views.html#view-request-types>`_ for more information on request types.

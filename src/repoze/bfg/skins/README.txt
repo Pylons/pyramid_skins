@@ -1,4 +1,4 @@
-Developer's guide
+Developer's Guide
 =================
 
 This interactive narrative is written as a doctest.
@@ -13,6 +13,7 @@ setups. We have prepared a directory with skin files::
 
   ./tests/skins
   ./tests/skins/index.pt
+  ./tests/skins/about/index.pt
   ./tests/skins/images/logo.png
 
 We will use the ZCML configuration language to register this structure
@@ -126,6 +127,33 @@ The response body contains the rendered page template:
       Hello, world!
     </body>
   </html>
+
+The view directive accepts a ``index`` option; optionally use it to
+specify an index filename for directories, e.g.
+
+  >>> testing.configure("""
+  ... <configure xmlns="http://namespaces.repoze.org/bfg">
+  ...    <include package="repoze.bfg.skins" />
+  ...    <skins path="%s">
+  ...      <view index="index.pt" />
+  ...    </skins>
+  ... </configure>""" % path)
+
+This registers index views for each directory:
+
+  >>> response = render_view_to_response(
+  ...    context, request, name="")
+  >>> response.status
+  '200 OK'
+  >>> response.content_type
+  'text/html'
+
+  >>> response = render_view_to_response(
+  ...    context, request, name="about")
+  >>> response.status
+  '200 OK'
+  >>> response.content_type
+  'text/html'
 
 Routes
 ------
