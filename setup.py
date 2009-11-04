@@ -12,6 +12,9 @@
 #
 ##############################################################################
 
+from distribute_setup import use_setuptools
+use_setuptools()
+
 import os
 from setuptools import setup, find_packages
 
@@ -20,8 +23,18 @@ README = open(os.path.join(here, 'README.txt')).read()
 USAGE = open(os.path.join(here, 'src', 'repoze', 'bfg', 'skins', 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
+install_requires =[
+    'Chameleon',
+    'zope.interface',
+    'zope.component',
+    'zope.configuration',
+    'zope.security',
+    'zope.testing',
+    'repoze.bfg',
+    ]
+
 setup(name='repoze.bfg.skins',
-      version = '0.13',
+      version = '0.14dev',
       description='Skin support for BFG.',
       long_description="\n\n".join((README, USAGE, CHANGES)),
       keywords = "zope3 repoze bfg",
@@ -39,15 +52,15 @@ setup(name='repoze.bfg.skins',
       packages=find_packages('src'),
       package_dir = {'': 'src'},
       namespace_packages=['repoze', 'repoze.bfg'],
-      install_requires=['setuptools',
-                        'zope.interface',
-                        'zope.component',
-                        'zope.configuration',
-                        'zope.testing',
-                        'repoze.bfg',
-                        'chameleon.zpt>=1.1',
-                        ],
+      install_requires=install_requires,
       include_package_data = True,
       zip_safe = False,
+      tests_require = install_requires + [
+          'zope.testing==3.8.3',
+          'zope.interface==3.5.2',
+          'zope.component==3.7.1',
+          'zope.security==3.7.1',
+          'zope.i18n==3.7.1',
+          ],
       test_suite="repoze.bfg.skins.tests",
       )

@@ -1,6 +1,12 @@
 Changelog
 =========
 
+In next release...
+
+  - Use ``Chameleon`` egg.
+
+  - Pin package versions for testing.
+
 0.13 (2009-30-10)
 
   - Rewrite. Backwards-compatibility broken.
