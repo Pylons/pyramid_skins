@@ -22,27 +22,10 @@ class DoctestCase(unittest.TestCase):
     def setUp(test):
         import repoze.bfg.testing
         repoze.bfg.testing.setUp()
-
-        import zope.component
-        registry = zope.component.getSiteManager()
-
-        from repoze.bfg.threadlocal import manager
-        info = manager.get().copy()
-        manager.push(info)
-        info['registry'] = registry
-
-        import repoze.bfg.configuration
-        import repoze.bfg.skins
-
-        repoze.bfg.configuration.make_registry(
-            None, package=repoze.bfg.skins, registry=registry)
-
-        assert zope.component.getSiteManager() is registry
+        repoze.bfg.testing.registerRoute('/willneverbeused', 'willneverbeused')
 
     @staticmethod
     def tearDown(test):
-        from repoze.bfg.threadlocal import manager
-        manager.pop()
-
         import repoze.bfg.testing
         repoze.bfg.testing.tearDown()
+
