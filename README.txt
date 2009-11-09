@@ -1,11 +1,50 @@
 Overview
 ========
 
+.. role:: mod(emphasis)
+.. role:: term(emphasis)
+
 This package provides a framework to make files in a directory
 structure available as *skin* components (the term originates from the
-CMF package which provides comparable functionality on Zope 2).
+CMF package which provides comparable functionality on Zope
+2). There's built-in integration with routes, views and components.
 
-There's built-in integration with routes, views and components.
+Skins make separation of library code and presentation easy, and come
+with a customization story. An example of usage within library code is
+a view class::
+
+  class FrontPage(object):
+      __call__ = SkinObject("site/frontpage")
+
+When the ``template`` attribute is accessed on an instance of this
+class, the skins framework looks up the object by the name
+``site/frontpage``.
+
+The ``site/frontpage`` object could appear in the file system as::
+
+  /.../skins/site/frontpage.pt
+
+Where the ``skins`` directory is the registration mount point. Note
+that the file extension is excluded from the object name. This is a
+behavior of the skin template factory which is associated with the
+``.pt`` extension). Custom factories for other file extensions can be
+registered (see `application setup`_).
+
+If another skin directory contains an object by the same name, the
+most recent registration takes priority, e.g.::
+
+  /.../custom-skins/site/frontpage.pt
+
+An alternative spelling which makes it easy to use skin objects as
+views is::
+
+  front_page = SkinObject("site/frontpage")
+
+The ``front_page`` is now a callable which takes ``context`` and
+``request``, similar to BFG views. Note that skin objects may be
+exposed as views automatically (see views_ for instructions). This
+makes it easy to publish some directory of files, be it static
+(e.g. images, stylesheets) or dynamic (e.g. templates).
 
 About
 -----
@@ -46,6 +85,8 @@ The ``skins`` directive makes available skin components for use in
 library code. The default factory (see Factories_) simply uses the
 relative path as the component name; some factories may strip off the
 file extension (this is the case for the page template factory).
+
+.. _views:
 
 To expose the contents of a skin directory as *views*,
 we can insert a ``view`` registration directive into the ``skins``
