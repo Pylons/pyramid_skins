@@ -1,7 +1,7 @@
 Changelog
 =========
 
-In next release...
+0.14 (2009-09-11)
 
   - Look up skin object on call if object has not been resolved.
 
