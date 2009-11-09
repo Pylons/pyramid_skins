@@ -21,6 +21,7 @@ USAGE = open(os.path.join(here, 'src', 'repoze', 'bfg', 'skins', 'README.txt')).
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 install_requires =[
+    'setuptools',
     'Chameleon',
     'zope.interface',
     'zope.component',
