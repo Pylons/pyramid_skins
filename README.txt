@@ -16,10 +16,6 @@ a view class::
   class FrontPage(object):
       __call__ = SkinObject("site/frontpage")
 
-When the ``template`` attribute is accessed on an instance of this
-class, the skins framework looks up the object by the name
-``site/frontpage``.
-
 The ``site/frontpage`` object could appear in the file system as::
 
   /.../skins/site/frontpage.pt
@@ -187,7 +183,7 @@ attribute. The following snippet illustrates this::
 
 The ``route:`` expression maps to the ``route_url`` framework function:
 
-  <img tal:attributes="src ${route: skins}/images/logo.png" />
+  <img tal:attributes="src string:${route: skins}/images/logo.png" />
 
 .. [#] See the `repoze.bfg url documentation <http://docs.repoze.org/bfg/1.1/api/url.html#repoze.bfg.url.static_url>`_ for more information on URL generation.
 
