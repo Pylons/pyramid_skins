@@ -19,6 +19,10 @@ class SkinObject(object):
         self._name = self.component_name(relative_path)
 
     def __call__(self, context, request):
+        if self.path is None:
+            inst = self.__get__()
+            return inst(context, request)
+
         content_type, encoding = mimetypes.guess_type(self.path)
         if not content_type:
             content_type = 'application/octet-stream'

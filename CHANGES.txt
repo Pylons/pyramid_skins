@@ -3,6 +3,8 @@ Changelog
 
 In next release...
 
+  - Look up skin object on call if object has not been resolved.
+
   - Added index view registration option.
 
   - Use ``Chameleon`` egg.

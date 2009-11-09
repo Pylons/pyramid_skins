@@ -75,6 +75,20 @@ The property works on the class itself, and on instances.
   >>> MyClass.logo
   <repoze.bfg.skins.models.SkinObject name="images/logo.png" at ...>
 
+Or directly as a view function::
+
+  >>> index_view = SkinObject("index")
+
+The view function takes context and request arguments, but we can get
+away with trivial arguments for now.
+
+  >>> print index_view(None, None).body
+  <html>
+    <body>
+      Hello, world!
+    </body>
+  </html>
+
 View registration
 -----------------
 
