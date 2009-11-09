@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.14 (2009-09-11)
+0.14 (2009-11-09)
 
   - Look up skin object on call if object has not been resolved.
 
@@ -11,7 +11,7 @@ Changelog
 
   - Pin package versions for testing.
 
-0.13 (2009-30-10)
+0.13 (2009-10-30)
 
   - Rewrite. Backwards-compatibility broken.
 
