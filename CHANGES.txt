@@ -3,6 +3,9 @@ Changelog
 
 In next release...
 
+  - Normalize path (ZCML does this, but we might be used
+    imperatively).
+
   - Raise runtime-error if view is attempted registered for unknown
     skin object (should never happen, but did because of an internal
     bug).

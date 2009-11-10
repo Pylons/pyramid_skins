@@ -61,7 +61,7 @@ def register_skin_view(relative_path, path, kwargs):
 class skins(object):
     def __init__(self, context, path):
         self.context = context
-        self.path = path
+        self.path = os.path.normpath(path)
         self.views = []
 
     def __call__(self):
