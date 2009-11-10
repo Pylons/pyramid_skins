@@ -1,6 +1,12 @@
 Changelog
 =========
 
+In next release...
+
+  - Raise runtime-error if view is attempted registered for unknown
+    skin object (should never happen, but did because of an internal
+    bug).
+
 0.14 (2009-11-09)
 
   - Look up skin object on call if object has not been resolved.

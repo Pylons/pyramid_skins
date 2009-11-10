@@ -45,12 +45,12 @@ def register_skin_object(relative_path, path):
 def register_skin_view(relative_path, path, kwargs):
     gsm = getSiteManager()
 
-    inst = None
     for inst in gsm.getAllUtilitiesRegisteredFor(ISkinObject):
         if inst.path == path:
             break
+    else:
+        raise RuntimeError("Skin object not found: %s." % relative_path)
 
-    assert inst is not None
     name = type(inst).component_name(relative_path).replace('/', '_')
 
     context = ConfigurationMachine()
