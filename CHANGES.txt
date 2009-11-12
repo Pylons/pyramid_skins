@@ -3,6 +3,8 @@ Changelog
 
 In next release...
 
+  - Make ``name`` attribute public.
+
   - Normalize path (ZCML does this, but we might be used
     imperatively).
 

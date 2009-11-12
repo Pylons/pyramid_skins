@@ -54,6 +54,11 @@ The page template factory strips off the file extension. The file
   >>> getUtility(ISkinObject, name="index")
   <repoze.bfg.skins.models.SkinTemplate name="index" at ...>
 
+The component name is available in the ``name`` attribute:
+
+  >>> getUtility(ISkinObject, name="index").name
+  u'index'
+
 Descriptor usage
 ----------------
 

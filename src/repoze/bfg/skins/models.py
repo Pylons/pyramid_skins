@@ -16,7 +16,7 @@ class SkinObject(object):
 
     def __init__(self, relative_path, path=None):
         self.path = path
-        self._name = self.component_name(relative_path)
+        self.name = self.component_name(relative_path)
 
     def __call__(self, context, request):
         if self.path is None:
@@ -32,11 +32,11 @@ class SkinObject(object):
         return response
 
     def __get__(self, *args):
-        return getUtility(ISkinObject, name=self._name)
+        return getUtility(ISkinObject, name=self.name)
 
     def __repr__(self):
         return '<%s.%s name="%s" at 0x%x>' % (
-            type(self).__module__, type(self).__name__, self._name, id(self))
+            type(self).__module__, type(self).__name__, self.name, id(self))
 
     @classmethod
     def component_name(cls, relative_path):
