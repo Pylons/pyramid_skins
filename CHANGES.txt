@@ -1,7 +1,7 @@
 Changelog
 =========
 
-In next release...
+0.15 (2009-11-12)
 
   - Make ``name`` attribute public.
 
