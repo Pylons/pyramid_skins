@@ -3,6 +3,6 @@
     <title>About</title>
   </head>
   <body>
-    Hello, world!
+    <img tal:define="logo skin: images/logo.png" src="/${logo.name}" />
   </body>
 </html>

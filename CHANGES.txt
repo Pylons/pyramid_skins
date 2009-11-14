@@ -1,6 +1,13 @@
 Changelog
 =========
 
+In next release...
+
+  - Acquisition-like skin object lookup from within templates,
+    e.g. ``skin: main_template`` will try to acquire the object from
+    the current skin object path (if applicable), while ``skin:
+    /main_template`` will always use an absolute (direct) lookup.
+
 0.15 (2009-11-12)
 
   - Make ``name`` attribute public.

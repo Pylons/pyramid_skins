@@ -13,8 +13,9 @@ setups. We have prepared a directory with skin files::
 
   ./tests/skins
   ./tests/skins/index.pt
-  ./tests/skins/about/index.pt
   ./tests/skins/images/logo.png
+  ./tests/skins/about/index.pt
+  ./tests/skins/about/images/logo.png
 
 We will use the ZCML configuration language to register this structure
 for use as skins. The following ``configure`` function loads in a ZCML
@@ -220,8 +221,7 @@ other skin components by name.
 
   >>> from chameleon.zpt.template import PageTemplate
   >>> template = PageTemplate("""
-  ... <html tal:define="master skin: index"
-  ...       metal:use-macro="master.macros['main']">
+  ... <html tal:define="master skin: /index" metal:use-macro="master.macros['main']">
   ...    <body metal:fill-slot="body">
   ...       <h1>Welcome</h1>
   ...       <img src="${route: test}/images/logo.png" />
@@ -241,4 +241,12 @@ other skin components by name.
     <body>
       Hello, world!
     </body>
+  </html>
+
+The ``about/index`` template illustrates relative skin object lookup::
+
+  >>> from repoze.bfg.view import render_view
+  >>> print render_view(context, request, name="about")
+  <html>
+   ... <img src="/about/images/logo.png" /> ...
   </html>

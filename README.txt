@@ -171,7 +171,32 @@ include them as macros. This is made pluggable such that applications
 can add additional functionality.
 
 This package provides a new expression ``skin:`` which will retrieve a
-skin object by name:
+skin object by name.
+
+Absolute
+
+  If the name begins with a slash ("/") character, it's considered an
+  absolute lookup, e.g.::
+
+    /images/logo.png => "images/logo.png"
+
+  This is a placeless lookup.
+
+Relative
+
+  If the name does not begin with a slash, it's considered a relative
+  lookup. Descending from the current path (given a skin template
+  context), an attempt to locate the skin object is done at every
+  parent level.
+
+  For example, if we're rendering the ``about/index`` template in our
+  setup, then we'll have::
+
+    images/logo.png => "about/images/logo.png"
+    /images/logo.png => "images/logo.png"
+
+  This is akin to *acquisition* (the object is attempted acquired from
+  the current context and below).
 
 The skin object factory for page templates provide the ``macros``
 attribute. The following snippet illustrates this::
