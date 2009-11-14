@@ -32,7 +32,7 @@ install_requires =[
     ]
 
 setup(name='repoze.bfg.skins',
-      version = '0.15',
+      version = '0.16',
       description='Skin support for BFG.',
       long_description="\n\n".join((README, USAGE, CHANGES)),
       keywords = "zope3 repoze bfg",

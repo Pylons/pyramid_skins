@@ -1,7 +1,7 @@
 Changelog
 =========
 
-In next release...
+0.16 (2009-11-14)
 
   - Acquisition-like skin object lookup from within templates,
     e.g. ``skin: main_template`` will try to acquire the object from
