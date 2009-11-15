@@ -59,6 +59,12 @@ class SkinTemplate(SkinObject, PageTemplateFile):
     def refresh(self):
         self.read()
 
+    def render(self, *args, **kw):
+        if args:
+            slots, = args
+            return self.render_macro("", slots=slots, parameters=kw)
+        return PageTemplateFile.render(self, **kw)
+
     @classmethod
     def component_name(cls, relative_path):
         return os.path.splitext(relative_path)[0]

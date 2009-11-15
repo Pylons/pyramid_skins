@@ -3,6 +3,8 @@ Changelog
 
 In next release...
 
+  - Skin templates may now be used as macros.
+
   - Make sure expression syntax is correct.
 
 0.16 (2009-11-14)
