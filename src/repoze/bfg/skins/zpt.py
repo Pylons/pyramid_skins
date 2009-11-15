@@ -1,3 +1,5 @@
+import re
+
 from zope import interface
 from zope import component
 
@@ -12,11 +14,16 @@ class SkinTranslator(ExpressionTranslator):
     interface.implements(IExpressionTranslator)
 
     symbol = '_lookup_skin'
+    re_path = re.compile(r'^[A-Za-z./_]+$')
 
     def translate(self, string, escape=None):
         if not string:
             return None
         string = string.strip()
+
+        if self.re_path.match(string) is None:
+            raise SyntaxError(string)
+
         value = types.value("%s('%s', template)" % (self.symbol, string))
         value.symbol_mapping[self.symbol] = _lookup_skin
         return value

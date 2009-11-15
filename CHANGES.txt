@@ -1,6 +1,10 @@
 Changelog
 =========
 
+In next release...
+
+  - Make sure expression syntax is correct.
+
 0.16 (2009-11-14)
 
   - Acquisition-like skin object lookup from within templates,
