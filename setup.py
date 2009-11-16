@@ -20,6 +20,9 @@ README = open(os.path.join(here, 'README.txt')).read()
 USAGE = open(os.path.join(here, 'src', 'repoze', 'bfg', 'skins', 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
+long_description = "\n\n".join((README, USAGE, CHANGES))
+long_description = long_description.decode('utf-8')
+
 install_requires =[
     'setuptools',
     'Chameleon',
@@ -34,7 +37,7 @@ install_requires =[
 setup(name='repoze.bfg.skins',
       version = '0.17',
       description='Skin support for BFG.',
-      long_description="\n\n".join((README, USAGE, CHANGES)),
+      long_description=long_description,
       keywords = "zope3 repoze bfg",
       classifiers = [
           'Development Status :: 4 - Beta',
