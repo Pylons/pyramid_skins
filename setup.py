@@ -54,6 +54,7 @@ setup(name='repoze.bfg.skins',
       include_package_data = True,
       zip_safe = False,
       tests_require = install_requires + [
+          'manuel',
           'zope.testing==3.8.3',
           'zope.interface==3.5.2',
           'zope.component==3.7.1',

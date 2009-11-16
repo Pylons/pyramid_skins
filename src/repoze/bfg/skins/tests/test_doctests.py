@@ -10,13 +10,20 @@ class DoctestCase(unittest.TestCase):
         return getattr(self, test)()
 
     @classmethod
-    def test_readme(cls):
-        return doctest.DocFileSuite(
-            'README.txt',
-            optionflags=OPTIONFLAGS,
+    def test_docs(cls):
+        import manuel.testing
+        import manuel.codeblock
+        import manuel.doctest
+        import manuel.capture
+        m = manuel.doctest.Manuel(optionflags=OPTIONFLAGS)
+        m += manuel.codeblock.Manuel()
+        m += manuel.capture.Manuel()
+
+        import pkg_resources
+        return manuel.testing.TestSuite(
+            m, pkg_resources.resource_filename("repoze.bfg.skins", "README.txt"),
             setUp=cls.setUp,
-            tearDown=cls.tearDown,
-            package='repoze.bfg.skins')
+            tearDown=cls.tearDown)
 
     @staticmethod
     def setUp(test):

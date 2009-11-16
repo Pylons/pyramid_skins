@@ -1,0 +1,5 @@
+<html>
+  <body metal:define-slot="body" metal:define-macro="body">
+    Hello template!
+  </body>
+</html>

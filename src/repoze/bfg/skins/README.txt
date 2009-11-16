@@ -1,252 +1,426 @@
-Developer's Guide
-=================
+Documentation
+=============
 
-This interactive narrative is written as a doctest.
-
-You can run the tests by issuing the following command at the
-command-line prompt::
+This section is tested using the :mod:`manuel` library. You can run
+the tests from the command-line::
 
 $ python setup.py test
 
-In the course of the narrative we will demonstrate different
-setups. We have prepared a directory with skin files::
+This allows you to make sure the package is compatible with your
+platform.
 
-  ./tests/skins
-  ./tests/skins/index.pt
-  ./tests/skins/images/logo.png
-  ./tests/skins/about/index.pt
-  ./tests/skins/about/images/logo.png
+In the course of the narrative we will demonstrate different usage
+scenarios. The test setup contains the following files::
 
-We will use the ZCML configuration language to register this structure
-for use as skins. The following ``configure`` function loads in a ZCML
-configuration string.
+  ./skins
+  ./skins/index.pt
+  ./skins/main_template.pt
+  ./skins/images/logo.png
+  ./skins/about/index.pt
+  ./skins/about/images/logo.png
 
-  >>> from repoze.bfg.skins import tests as testing
-
-The ZCML-directive ``skins`` takes a ``path`` argument; we'll provide a
-path which points to a directory within the testing harness.
+.. -> output
 
   >>> import os
-  >>> path = os.path.join(testing.__path__[0], 'skins')
+  >>> from repoze.bfg.skins import tests
+  >>> for filename in output.split('\n'):
+  ...     assert os.lstat(
+  ...         os.path.join(os.path.dirname(tests.__file__), filename.strip())) \
+  ...         is not None
 
-  >>> testing.configure("""
-  ... <configure xmlns="http://namespaces.repoze.org/bfg">
-  ...    <include package="repoze.bfg.skins" />
-  ...    <skins path="%s" />
-  ... </configure>""" % path)
+The meaning of this set of skin components is that ``index.pt``
+represents some document that we want to publish; it uses
+``main_template.pt`` is the o-wrap template. The ``./about`` directory
+is some subsection of the site which has its own logo.
 
-Skin objects as components
---------------------------
+Getting started
+---------------
 
-After this bit of configuration, our skin objects are available as
-components.
+We begin by registering the ``skins`` directory. This makes the
+files listed above available as skin components. The ZCML-directive
+``skins`` makes registration easy::
 
-  >>> from zope.component import getUtility
-  >>> from repoze.bfg.skins.interfaces import ISkinObject
+  <include package="repoze.bfg.skins" />
 
-The name of the component is the relative path.
+  <skins path="skins" />
 
-  >>> getUtility(ISkinObject, name="images/logo.png")
-  <repoze.bfg.skins.models.SkinObject name="images/logo.png" at ...>
+.. -> configuration
 
-The page template factory strips off the file extension. The file
-"index.pt" becomes a skin template with the name "index".
+.. invisible-code-block: python
 
-  >>> getUtility(ISkinObject, name="index")
-  <repoze.bfg.skins.models.SkinTemplate name="index" at ...>
+  from zope.configuration.xmlconfig import string
+  _ = string("""
+     <configure xmlns="http://namespaces.repoze.org/bfg" package="repoze.bfg.skins.tests">
+     <include package="repoze.bfg.includes" file="meta.zcml" />
+       %(configuration)s
+     </configure>""".strip() % locals())
 
-The component name is available in the ``name`` attribute:
+  from zope.component import getUtility
+  from repoze.bfg.skins.interfaces import ISkinObject
+  getUtility(ISkinObject, name="index")
 
-  >>> getUtility(ISkinObject, name="index").name
+The ``path`` parameter indicates a relative path which defines the
+mount point for the skin registration.
+
+Skin components
+###############
+
+At this point the skin objects are available as utility
+components. This is the low-level interface::
+
+  from zope.component import getUtility
+  from repoze.bfg.skins.interfaces import ISkinObject
+  index = getUtility(ISkinObject, name="index")
+
+.. -> code
+
+  >>> exec(code)
+  >>> assert index is not None
+
+The component name is available in the ``name`` attribute::
+
+  index.name
+
+.. -> expr
+
+  >>> eval(expr)
   u'index'
 
-Descriptor usage
-----------------
+Skin objects
+############
 
-The ``SkinObject`` class works as a descriptor. This is useful to tie
-user interface classes with skin files with a weak binding.
+The ``SkinObject`` class itself wraps this utility lookup::
 
-  >>> from repoze.bfg.skins import SkinObject
+  from repoze.bfg.skins import SkinObject
+  FrontPage = SkinObject("index")
 
-Use it as a class attribute.
+.. -> code
 
-  >>> class MyClass(object):
-  ...     index = SkinObject("index")
-  ...     logo = SkinObject("images/logo.png")
+  >>> exec(code)
+  >>> FrontPage.__get__() is not None
+  True
 
-The property works on the class itself, and on instances.
+This is now a callable which will render the template to a
+response. The first two positional arguments (if given) are mapped to
+``context`` and ``request``::
 
-  >>> MyClass.index
-  <repoze.bfg.skins.models.SkinTemplate name="index" at ...>
-  >>> MyClass.logo
-  <repoze.bfg.skins.models.SkinObject name="images/logo.png" at ...>
+  response = FrontPage(u"Hello world!")
 
-Or directly as a view function::
+.. -> code
 
-  >>> index_view = SkinObject("index")
+Keyword arguments are passed into the template scope::
 
-The view function takes context and request arguments, but we can get
-away with trivial arguments for now.
-
-  >>> print index_view(None, None).body
   <html>
     <body>
-      Hello, world!
+      Hello world!
     </body>
   </html>
 
-View registration
------------------
+.. -> output
 
-We can register views for skin objects by wrapping a ``view``
-directive in the ``skins`` directive.
+  >>> exec(code)
+  >>> response.body.replace('\n\n', '\n') == output.strip('\n')
+  True
 
-There are no required arguments to the ``view`` directive:
+Framework integration
+---------------------
 
-  >>> testing.configure("""
-  ... <configure xmlns="http://namespaces.repoze.org/bfg">
-  ...    <include package="repoze.bfg.skins" />
-  ...    <skins path="%s">
-  ...      <view />
-  ...    </skins>
-  ... </configure>""" % path)
+The package comes with integration for views and routes.
 
-The BFG framework function ``render_view_to_response`` lets us look up
-views by name and retrieve a response object for a given ``context``
-and ``request``.
+Views
+#####
 
-  >>> context = testing.DummyContext()
-  >>> request = testing.DummyRequest("")
-  >>> from repoze.bfg.view import render_view_to_response
+In the previous section, we have seen how skin objects are callable
+and match the view callable signature.
 
-Note in the example how the directory separator character has been
-replaced by an underscore.
+In BFG we can also define a view using a class which provides
+``__init__`` and ``__call__``. The call method must return a
+response. Using ``SkinObject`` we can define the class as follows::
 
-  >>> response = render_view_to_response(
-  ...    context, request, name="images_logo.png")
-  >>> response.status
-  '200 OK'
-  >>> response.content_type
-  'image/png'
+  class FrontPageView(object):
+      __call__ = SkinObject("index")
 
-The page template view first renders the template before returning the
-response.
+      def __init__(self, context, request):
+          self.context = context
+          self.request = request
 
-  >>> response = render_view_to_response(
-  ...    context, request, name="index")
-  >>> response.status
-  '200 OK'
-  >>> response.content_type
-  'text/html'
+.. -> code
 
-The response body contains the rendered page template:
+  >>> exec(code)
 
-  >>> print response.body
+When the ``__call__`` attribute is accessed, the view instance
+dictionary (which in this case has the symbols ``context`` and
+``request``) is bound to the template. The dictionary is then passed
+as keyword arguments when the template is called.
+
+While the two patterns are equivalent, using a view allows you to
+prepare data for the template.
+
+The views are registered using the standard ``view`` directive::
+
+  <view name="frontpage1" view=".FrontPage" />
+  <view name="frontpage2" view=".FrontPageView" />
+
+.. -> configuration
+
+  >>> from repoze.bfg.skins import tests
+  >>> tests.FrontPage = FrontPage
+  >>> tests.FrontPageView = FrontPageView
+  >>> _ = string("""
+  ... <configure xmlns="http://namespaces.repoze.org/bfg" package="repoze.bfg.skins.tests">
+  ...   <include package="repoze.bfg.includes" file="meta.zcml" />
+  ...   %(configuration)s
+  ... </configure>""".strip() % locals())
+
+Both yield the exact same output when passed ``'Hello world!'`` as the
+view context::
+
   <html>
     <body>
-      Hello, world!
+      Hello world!
     </body>
   </html>
 
-The view directive accepts a ``index`` option; optionally use it to
-specify an index filename for directories, e.g.
+.. -> output
 
-  >>> testing.configure("""
-  ... <configure xmlns="http://namespaces.repoze.org/bfg">
-  ...    <include package="repoze.bfg.skins" />
-  ...    <skins path="%s">
-  ...      <view index="index.pt" />
-  ...    </skins>
-  ... </configure>""" % path)
+  >>> from repoze.bfg.view import render_view
+  >>> from repoze.bfg.testing import DummyRequest
+  >>> frontpage1 = render_view('Hello world!', DummyRequest(), name="frontpage1")
+  >>> frontpage2 = render_view('Hello world!', DummyRequest(), name="frontpage2")
+  >>> frontpage1.replace('\n\n', '\n') == frontpage2.replace('\n\n', '\n') == output.strip('\n')
+  True
 
-This registers index views for each directory:
+Automatic view registration
+###########################
 
-  >>> response = render_view_to_response(
-  ...    context, request, name="")
-  >>> response.status
-  '200 OK'
-  >>> response.content_type
-  'text/html'
+To expose the contents of a skin directory as *views*, we can insert a
+``view`` registration directive into the ``skins`` directive::
 
-  >>> response = render_view_to_response(
-  ...    context, request, name="about")
-  >>> response.status
-  '200 OK'
-  >>> response.content_type
-  'text/html'
+  <skins path="skins">
+     <view />
+  </skins>
 
-Routes
-------
+.. -> configuration
 
-Now that we have views registered, let's configure a route.
+  >>> _ = string("""
+  ... <configure xmlns="http://namespaces.repoze.org/bfg" package="repoze.bfg.skins.tests">
+  ...   <include package="repoze.bfg.includes" file="meta.zcml" />
+  ...   <include package="repoze.bfg.skins" />
+  ...   %(configuration)s
+  ... </configure>""".strip() % locals())
+  >>> render_view('Hello world!', DummyRequest(), name="") is None
+  True
+  >>> print render_view('Hello world!', DummyRequest(), name="index")
+  <html>
+    <body>
+      Hello world!
+    </body>
+  </html>
 
-  >>> testing.configure("""
-  ... <configure xmlns="http://namespaces.repoze.org/bfg">
-  ...    <include package="repoze.bfg.skins" />
-  ...    <route
-  ...       name="test"
-  ...       path="/*subpath"
-  ...       factory="repoze.bfg.skins.RoutesTraverserFactory"
-  ...       />
-  ... </configure>""")
+The ``view`` directive has no required attributes, but all the
+attributes which are applicable for the standalone directive [#]_ are
+available, except ``name`` which is defined by the component and
+``view`` which is given by the skin object.
 
-To try it out, we'll configure a router to use the components we've
-set up.
+.. note:: Views are registered using the component name. However, the directory separator character ("/") is replaced by an underscore (e.g. "images/logo.png" becomes "images_logo.png").
 
-  >>> from repoze.bfg.router import Router
+When wrapped inside ``skins``, an option ``index`` is available to
+allow registering default index views (e.g. index.pt)::
+
+  <skins path="skins">
+     <view index="index.pt" />
+  </skins>
+
+.. -> configuration
+
+  >>> _ = string("""
+  ... <configure xmlns="http://namespaces.repoze.org/bfg" package="repoze.bfg.skins.tests">
+  ...   <include package="repoze.bfg.includes" file="meta.zcml" />
+  ...   <include package="repoze.bfg.skins" />
+  ...   %(configuration)s
+  ... </configure>""".strip() % locals())
+  >>> print render_view('Hello world!', DummyRequest(), name="")
+  <html>
+    <body>
+      Hello world!
+    </body>
+  </html>
+
+When an index name is set, a view is registered for the directory
+path, mapped to the index object in the directory.
+
+.. [#] See the `repoze.bfg view request type documentation <http://static.repoze.org/bfgdocs/narr/views.html#view-request-types>`_ for more information on request types.
+
+Routes integration
+##################
+
+We can configure a route to serve up skins registered as views under
+some path (``subpath``)::
+
+  <route
+     name="skins"
+     path="/static/*subpath"
+     factory="repoze.bfg.skins.RoutesTraverserFactory"
+     />
+
+.. -> configuration
+
+  >>> _ = string("""
+  ... <configure xmlns="http://namespaces.repoze.org/bfg" package="repoze.bfg.skins.tests">
+  ...   <include package="repoze.bfg.includes" file="meta.zcml" />
+  ...   %(configuration)s
+  ... </configure>""".strip() % locals())
   >>> from zope.component import getSiteManager
-  >>> router = Router(getSiteManager())
-
-We need to set the root factory to the routes mapper.
-
-  >>> from zope.component import getUtility
+  >>> registry = getSiteManager()
+  >>> from repoze.bfg.router import Router
+  >>> router = Router(registry)
+  >>> environ = {
+  ...     'wsgi.url_scheme':'http',
+  ...     'SERVER_NAME':'localhost',
+  ...     'SERVER_PORT':'8080',
+  ...     'REQUEST_METHOD':'GET',
+  ...     'PATH_INFO':'/static/images/logo.png',
+  ...     }
+  >>> def start_response(*args): print args
   >>> from repoze.bfg.interfaces import IRoutesMapper
   >>> router.root_factory = getUtility(IRoutesMapper)
+  >>> app_iter = router(environ, start_response)
+  ('200 OK', [('content-type', 'image/png; charset=UTF-8')])
 
-Our "test" route lets us pass in any valid skin path:
-
-  >>> testing.DummyRequest("/images/logo.png").get_response(router)
-  <Response at ... 200 OK>
-  >>> testing.DummyRequest("/index").get_response(router)
-  <Response at ... 200 OK>
+This traverser will convert ``subpath`` into a view name.
 
 Templates
 ---------
 
-Included with the package is functionality to support interaction
-between templates registered as skin components.
+Included with the package is a factory for Zope Page Templates (with
+the file extension ".pt"). The :mod:`Chameleon` rendering engine is
+used.
 
-An expression type ``skin`` is available for page templates to look up
-other skin components by name.
+Page templates registered as skin objects will be called *skin
+templates*. Support is provided to locate other skin templates and
+include them as macros.
 
-  >>> from chameleon.zpt.template import PageTemplate
-  >>> template = PageTemplate("""
-  ... <html tal:define="master skin: /index" metal:use-macro="master.macros['main']">
-  ...    <body metal:fill-slot="body">
-  ...       <h1>Welcome</h1>
-  ...       <img src="${route: test}/images/logo.png" />
-  ...    </body>
-  ... </html>""")
+Skin expression
+###############
 
-  >>> print template.render(context=context, request=request)
-  <html>
-    <body>
-      <h1>Welcome</h1>
-      <img src="http://localhost/images/logo.png" />
-    </body>
-  </html>
+This package provides a new expression ``skin:`` which will retrieve a
+skin object by name. Lookups are either absolute or relative.
 
-  >>> print MyClass.index.render()
-  <html>
-    <body>
-      Hello, world!
-    </body>
-  </html>
+Absolute
 
-The ``about/index`` template illustrates relative skin object lookup::
+  If the name begins with a slash ("/") character, it's considered an
+  absolute lookup, e.g.::
 
-  >>> from repoze.bfg.view import render_view
-  >>> print render_view(context, request, name="about")
+    /images/logo.png => "images/logo.png"
+
+  This is a placeless lookup.
+
+Relative
+
+  If the name does not begin with a slash, it is a placeful lookup.
+
+  Descending from the current path (given a skin template context), we
+  attempt to locate the skin object at every parent level.
+
+  For example, the name ``"images/logo.png"`` is relative. If we are
+  rendering the about page, then it will map to::
+
+    /about/images/logo.png
+
+  instead of::
+
+    /images/logo.png
+
+  This is akin to *acquisition* (the object is attempted acquired from
+  the current context and below). It can be used to redefine skin
+  objects for a particular location and below.
+
+  >>> print render_view('Hello world!', DummyRequest(), name="about")
   <html>
    ... <img src="/about/images/logo.png" /> ...
   </html>
+
+Route expression
+################
+
+The ``route:`` expression maps to the ``repoze.bfg.url.route_url``
+framework function:
+
+  <img tal:attributes="src string:${route: skins}/images/logo.png" />
+
+.. -> source
+
+  >>> from chameleon.zpt.template import PageTemplate
+  >>> template = PageTemplate(source)
+  >>> print template(request=DummyRequest())
+  <img src="http://example.com/static/images/logo.png" />
+
+This is a convenient way to compute the URL for static resources. See
+the `repoze.bfg url documentation
+<http://docs.repoze.org/bfg/1.1/api/url.html#repoze.bfg.url.static_url>`_
+for more information on URL generation.
+
+Macro support
+#############
+
+Skin templates may define macros. Use the standard ``macros``
+attribute to reach them::
+
+  <html tal:define="master skin: /main_template"
+        metal:use-macro="master.macros['body']">
+    <body metal:fill-slot="body">
+      Inserted.
+    </body>
+  </html>
+
+.. -> source
+
+  >>> template = PageTemplate(source)
+  >>> print template()
+  <body>
+    Inserted.
+  </body>
+
+Skin objects can also be used directly as METAL macros. In this case
+the entire template is rendered::
+
+  <html metal:use-macro="skin: /main_template">
+    <body metal:fill-slot="body">
+      Inserted.
+    </body>
+  </html>
+
+.. -> source
+
+  >>> template = PageTemplate(source)
+  >>> print template()
+  <html>
+    <body>
+      Inserted.
+    </body>
+  </html>
+
+Factories
+---------
+
+The skin objects are instances of the ``SkinObject`` base class. We
+may associate a custom factory for particular file extensions::
+
+    class MySkinObject(SkinObject):
+        pass
+
+We register the class as a named utility component::
+
+    <utility
+       name=".my"
+       component=".MySkinObject"
+       provides="repoze.bfg.skins.interfaces.ISkinObjectFactory"
+       />
+
+Reload support
+--------------
+
+When the global setting ``debug`` is set (to any non-trivial value),
+skin objects are discovered at run-time and files are automatically
+reloaded when changed.
+

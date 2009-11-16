@@ -1,3 +1,4 @@
+import copy
 import os
 import mimetypes
 import webob
@@ -14,25 +15,40 @@ class SkinObject(object):
     implements(ISkinObject)
     classProvides(ISkinObjectFactory)
 
+    _bound_kwargs = {}
+    content_type = 'application/octet-stream'
+
     def __init__(self, relative_path, path=None):
         self.path = path
         self.name = self.component_name(relative_path)
 
-    def __call__(self, context, request):
+        if path is not None:
+            content_type, encoding = mimetypes.guess_type(path)
+            if content_type is not None:
+                self.content_type = content_type
+
+    def __call__(self, context=None, request=None, **kw):
         if self.path is None:
             inst = self.__get__()
-            return inst(context, request)
+            return inst(context=context, request=request, **kw)
 
-        content_type, encoding = mimetypes.guess_type(self.path)
-        if not content_type:
-            content_type = 'application/octet-stream'
-
-        response = webob.Response(app_iter=file(self.path))
+        result = self.render(context=context, request=request, **kw)
+        if isinstance(result, basestring):
+            response = webob.Response(body=result)
+        else:
+            response = webob.Response(app_iter=result)
+        content_type = self.content_type
+        if content_type is None:
+            content_type = type(self).content_type
         response.content_type = content_type
         return response
 
-    def __get__(self, *args):
-        return getUtility(ISkinObject, name=self.name)
+    def __get__(self, view=None, cls=None):
+        inst = getUtility(ISkinObject, name=self.name)
+        inst = copy.copy(inst)
+        if view is not None:
+            inst._bound_kwargs = view.__dict__
+        return inst
 
     def __repr__(self):
         return '<%s.%s name="%s" at 0x%x>' % (
@@ -45,16 +61,15 @@ class SkinObject(object):
     def refresh(self):
         pass
 
+    def render(self, **kw):
+        return file(self.path)
+
 class SkinTemplate(SkinObject, PageTemplateFile):
+    content_type = 'text/html'
+
     def __init__(self, relative_path, path):
         SkinObject.__init__(self, relative_path, path)
         PageTemplateFile.__init__(self, path)
-
-    def __call__(self, context, request, **kw):
-        result = self.render(context=context, request=request, **kw)
-        response = webob.Response(result)
-        response.content_type = self.content_type or 'text/html'
-        return response
 
     def refresh(self):
         self.read()
@@ -63,6 +78,7 @@ class SkinTemplate(SkinObject, PageTemplateFile):
         if args:
             slots, = args
             return self.render_macro("", slots=slots, parameters=kw)
+        kw.update(self._bound_kwargs)
         return PageTemplateFile.render(self, **kw)
 
     @classmethod
