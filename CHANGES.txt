@@ -1,7 +1,7 @@
 Changelog
 =========
 
-In next release...
+0.17 (2009-11-16)
 
   - Skin objects used as descriptors now pass on the class instance
     dict as the keyword argument dictionary.
