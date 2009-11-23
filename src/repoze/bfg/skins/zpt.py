@@ -14,7 +14,7 @@ class SkinTranslator(ExpressionTranslator):
     interface.implements(IExpressionTranslator)
 
     symbol = '_lookup_skin'
-    re_path = re.compile(r'^[A-Za-z./_]+$')
+    re_path = re.compile(r'^[A-Za-z./_\-]+$')
 
     def translate(self, string, escape=None):
         if not string:
