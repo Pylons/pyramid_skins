@@ -1,6 +1,12 @@
 Changelog
 =========
 
+In next release...
+
+  - Do not set charset on binary responses.
+
+  - Add content length to static responses.
+
 0.17 (2009-11-16)
 
   - Skin objects used as descriptors now pass on the class instance

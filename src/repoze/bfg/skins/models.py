@@ -17,6 +17,7 @@ class SkinObject(object):
 
     _bound_kwargs = {}
     content_type = 'application/octet-stream'
+    encoding = None
 
     def __init__(self, relative_path, path=None):
         self.path = path
@@ -26,6 +27,8 @@ class SkinObject(object):
             content_type, encoding = mimetypes.guess_type(path)
             if content_type is not None:
                 self.content_type = content_type
+            if encoding is not None:
+                self.encoding = encoding
 
     def __call__(self, context=None, request=None, **kw):
         if self.path is None:
@@ -37,10 +40,13 @@ class SkinObject(object):
             response = webob.Response(body=result)
         else:
             response = webob.Response(app_iter=result)
+            response.content_length = os.path.getsize(self.path)
+
         content_type = self.content_type
         if content_type is None:
             content_type = type(self).content_type
         response.content_type = content_type
+        response.charset = self.encoding
         return response
 
     def __get__(self, view=None, cls=None):
@@ -66,6 +72,7 @@ class SkinObject(object):
 
 class SkinTemplate(SkinObject, PageTemplateFile):
     content_type = 'text/html'
+    encoding = 'UTF-8'
 
     def __init__(self, relative_path, path):
         SkinObject.__init__(self, relative_path, path)
