@@ -1,3 +1,4 @@
+import os
 import unittest
 import doctest
 
@@ -21,7 +22,16 @@ class DoctestCase(unittest.TestCase):
 
         import pkg_resources
         return manuel.testing.TestSuite(
-            m, pkg_resources.resource_filename("repoze.bfg.skins", "README.txt"),
+            m,
+            pkg_resources.resource_filename(
+                "repoze.bfg.skins", os.path.join(
+                    "docs", "registration.rst")),
+            pkg_resources.resource_filename(
+                "repoze.bfg.skins", os.path.join(
+                    "docs", "templates.rst")),
+            pkg_resources.resource_filename(
+                "repoze.bfg.skins", os.path.join(
+                    "docs", "routing.rst")),
             setUp=cls.setUp,
             tearDown=cls.tearDown)
 

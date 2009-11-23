@@ -4,7 +4,7 @@ from zope import interface
 from zope.component import getSiteManager
 from zope.schema import TextLine
 
-from zope.configuration.fields import GlobalObject, Path
+from zope.configuration.fields import Path
 from zope.configuration.config import ConfigurationMachine
 
 from repoze.bfg.zcml import view as register_bfg_view

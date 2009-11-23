@@ -1,0 +1,228 @@
+Registration
+============
+
+We begin by registering the ``skins`` directory. This makes the
+files listed above available as skin components. The ZCML-directive
+``skins`` makes registration easy::
+
+  <configure xmlns="http://namespaces.repoze.org/bfg">
+    <include package="repoze.bfg.skins" />
+    <skins path="skins" />
+  </configure>
+
+.. -> configuration
+
+.. invisible-code-block: python
+
+  from zope.configuration.xmlconfig import string
+  _ = string("""
+     <configure xmlns="http://namespaces.repoze.org/bfg" package="repoze.bfg.skins.tests">
+     <include package="repoze.bfg.includes" file="meta.zcml" />
+       %(configuration)s
+     </configure>""".strip() % locals())
+
+  from zope.component import getUtility
+  from repoze.bfg.skins.interfaces import ISkinObject
+  getUtility(ISkinObject, name="index")
+
+The ``path`` parameter indicates a relative path which defines the
+mount point for the skin registration.
+
+Skins
+#####
+
+In the course of this narrative we will demonstrate different usage
+scenarios. The example test setup contains the following files::
+
+  ./skins/index.pt
+  ./skins/main_template.pt
+  ./skins/images/logo.png
+  ./skins/about/index.pt
+  ./skins/about/images/logo.png
+
+         ↳ mount point
+
+.. -> output
+
+  >>> import os
+  >>> from repoze.bfg.skins import tests
+  >>> for filename in output.split('\n'):
+  ...     if filename.lstrip().startswith('.'):
+  ...         assert os.lstat(
+  ...             os.path.join(os.path.dirname(tests.__file__), filename.strip())) \
+  ...             is not None
+
+In this example, the ``index.pt`` template represents some application
+page (e.g. the front-page); it uses ``main_template.pt`` as the
+:term:`o-wrap` template. The ``about`` directory represents some
+editorial about-section where ``about/index.pt`` is the index
+page. This section provides its own logo.
+
+Components
+##########
+
+At this point the skin objects are available as utility
+components. This is the low-level interface::
+
+  from zope.component import getUtility
+  from repoze.bfg.skins.interfaces import ISkinObject
+  index = getUtility(ISkinObject, name="index")
+
+.. -> code
+
+  >>> exec(code)
+  >>> assert index is not None
+
+The component name is available in the ``name`` attribute::
+
+  index.name
+
+.. -> expr
+
+  >>> eval(expr)
+  u'index'
+
+We now move up one layer and consider the skin components as objects.
+
+Objects
+#######
+
+The ``SkinObject`` class itself wraps the low-level utility lookup::
+
+  from repoze.bfg.skins import SkinObject
+  FrontPage = SkinObject("index")
+
+.. -> code
+
+  >>> exec(code)
+  >>> FrontPage.__get__() is not None
+  True
+
+This object is a callable which will render the template to a response
+(it could be an image, stylesheet or some other resource type). In the
+case of templates, the first two positional arguments (if given) are
+mapped to ``context`` and ``request``. These symbols are available for
+use in the template.
+
+::
+
+  response = FrontPage(u"Hello world!")
+
+.. -> code
+
+The index template simply inserts the ``context`` value into the body
+tag of the HTML document::
+
+  <html>
+    <body>
+      Hello world!
+    </body>
+  </html>
+
+.. -> output
+
+  >>> exec(code)
+  >>> response.body.replace('\n\n', '\n') == output.strip('\n')
+  True
+  >>> response.content_type == 'text/html'
+  True
+  >>> response.charset == 'UTF-8'
+  True
+
+The exact same approach works for the logo object::
+
+  from repoze.bfg.skins import SkinObject
+  logo = SkinObject("images/logo.png")
+
+.. -> code
+
+Calling the ``logo`` object returns an HTTP response::
+
+  200 OK
+
+.. -> output
+
+  >>> exec(code)
+  >>> response = logo()
+  >>> response.status == output.strip('\n')
+  True
+  >>> response.content_type == 'image/png'
+  True
+  >>> response.content_length == 2833
+  True
+  >>> response.charset == None
+  True
+
+  >>> exec(code)
+  >>> response.headers['content-type']
+  'image/png'
+
+Views
+#####
+
+The call method signature for skin templates is ``(context,
+request)``. This is the same as BFG views. That is, we can use skin
+template objects directly as view callables::
+
+  <view name="frontpage1" view=".FrontPage" />
+
+.. -> config1
+
+In BFG we can also define a view using a class which provides
+``__init__`` and ``__call__``. The call method must return a
+response. With skin objects, we can express it this way::
+
+  class FrontPageView(object):
+      __call__ = SkinObject("index")
+
+      def __init__(self, context, request):
+          self.context = context
+          self.request = request
+
+.. -> code
+
+  >>> exec(code)
+
+When the ``__call__`` attribute is accessed, the view instance
+dictionary (which in this case has the symbols ``context`` and
+``request``) is bound to the template. The dictionary is then passed
+as keyword arguments when the template is called::
+
+  <view name="frontpage2" view=".FrontPageView" />
+
+.. -> config2
+
+.. we run these two view configurations.
+
+  >>> from repoze.bfg.skins import tests
+  >>> tests.FrontPage = FrontPage
+  >>> tests.FrontPageView = FrontPageView
+  >>> from zope.configuration.xmlconfig import string
+  >>> _ = string("""
+  ... <configure xmlns="http://namespaces.repoze.org/bfg"
+  ...            package="repoze.bfg.skins.tests">
+  ...   <include package="repoze.bfg.includes" file="meta.zcml" />
+  ...   <include package="repoze.bfg.skins" />
+  ...   %(config1)s
+  ...   %(config2)s
+  ... </configure>""".strip() % locals())
+
+While the two patterns are equivalent, using a view allows you to
+prepare data for the template. Both yield the exact same output when
+passed ``'Hello world!'`` as the view context::
+
+  <html>
+    <body>
+      Hello world!
+    </body>
+  </html>
+
+.. -> output
+
+  >>> from repoze.bfg.view import render_view
+  >>> from repoze.bfg.testing import DummyRequest
+  >>> frontpage1 = render_view('Hello world!', DummyRequest(), name="frontpage1")
+  >>> frontpage2 = render_view('Hello world!', DummyRequest(), name="frontpage2")
+  >>> frontpage1.replace('\n\n', '\n') == frontpage2.replace('\n\n', '\n') == output.strip('\n')
+  True
+
