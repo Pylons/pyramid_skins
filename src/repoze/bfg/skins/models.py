@@ -57,8 +57,9 @@ class SkinObject(object):
         return inst
 
     def __repr__(self):
-        return '<%s.%s name="%s" at 0x%x>' % (
-            type(self).__module__, type(self).__name__, self.name, id(self))
+        return '<%s.%s name="%s" path="%s" at 0x%x>' % (
+            type(self).__module__, type(self).__name__,
+            self.name, self.path, id(self))
 
     @classmethod
     def component_name(cls, relative_path):
