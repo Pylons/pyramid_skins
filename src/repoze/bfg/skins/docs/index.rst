@@ -22,7 +22,7 @@ Some examples:
 - Use custom templates or resources for a particular **subset** of pages.
 
 Integration is available for templates, routes and views. Discovery at
-run-time is supported.
+run-time is supported [#]_.
 
 First look
 ----------
@@ -103,4 +103,4 @@ Indices and tables
 * :ref:`search`
 * :ref:`glossary`
 
-
+.. [#] Available on Mac OS 10.5+ only -- requires the ``pyfsevents`` library.
