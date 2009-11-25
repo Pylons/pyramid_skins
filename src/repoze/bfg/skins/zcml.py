@@ -95,15 +95,16 @@ class Discoverer(threading.Thread):
     else:
         def run(self):
             logger.info("Starting FS event listener.")
-            for path in self.paths:
-                self.register(path)
-            self.pyfsevents.listen()
 
-        def register(self, path):
-            def callback(path, subdir):
-                handler = self.paths[path.rstrip('/')]
-                handler.configure()
-            self.pyfsevents.registerpath(path, callback)
+            def callback(subpath, subdir):
+                for path, handler in self.paths.items():
+                    if subpath.startswith(path):
+                        return handler.configure()
+
+            for path in self.paths:
+                self.pyfsevents.registerpath(path, callback)
+
+            self.pyfsevents.listen()
 
         def stop(self):
             for path in self.paths:
