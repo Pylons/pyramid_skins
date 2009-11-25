@@ -21,7 +21,8 @@ Some examples:
   HTML templates instead of static HTML.
 - Use custom templates or resources for a particular **subset** of pages.
 
-Integration is available for templates, routes and views.
+Integration is available for templates, routes and views. Discovery at
+run-time is supported.
 
 First look
 ----------

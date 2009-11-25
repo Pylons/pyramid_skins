@@ -3,6 +3,8 @@ Changelog
 
 In next release...
 
+  - Added discovery support.
+
   - Allow hyphens in the skin expression translator.
 
   - Do not set charset on binary responses.

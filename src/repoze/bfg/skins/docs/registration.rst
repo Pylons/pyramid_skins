@@ -80,7 +80,7 @@ The component name is available in the ``name`` attribute::
 .. -> expr
 
   >>> eval(expr)
-  u'index'
+  'index'
 
 We now move up one layer and consider the skin components as objects.
 
@@ -226,3 +226,89 @@ passed ``'Hello world!'`` as the view context::
   >>> frontpage1.replace('\n\n', '\n') == frontpage2.replace('\n\n', '\n') == output.strip('\n')
   True
 
+Discovery
+#########
+
+In some scenarios, it's useful to be able to discover skin objects at
+run-time. An example is when you use skins to publish editorial
+content which is added to the file system.
+
+The ``discovery`` parameter takes a boolean argument, e.g. ``True``::
+
+  <configure xmlns="http://namespaces.repoze.org/bfg">
+    <skins path="skins" discovery="True" />
+  </configure>
+
+.. -> configuration
+
+Let's add a new skin template with the source::
+
+  <div>Hello world!</div>
+
+.. -> source
+
+.. invisible-code-block: python
+
+  import os
+  import imp
+  import sys
+  import tempfile
+  f = tempfile.NamedTemporaryFile(suffix=".py")
+  try:
+      path, suffix = os.path.splitext(f.name)
+      module = os.path.basename(path)
+      imp.load_module(module, open(f.name), path, (suffix, "r", imp.PY_SOURCE))
+  finally:
+      f.close()
+
+  # make skins directory
+  dir = os.path.join(os.path.dirname(path), "skins")
+  if not os.path.exists(dir):
+      os.mkdir(dir)
+  g = None
+  try:
+      # register skin directory
+      from zope.configuration.xmlconfig import string
+      _ = string("""
+         <configure xmlns="http://namespaces.repoze.org/bfg"
+                    package="%(module)s">
+         <include package="repoze.bfg.includes" file="meta.zcml" />
+         <include package="repoze.bfg.skins" />
+           %(configuration)s
+         </configure>""".strip() % locals())
+
+      # add new file for discovery
+      g = tempfile.NamedTemporaryFile(dir=dir, suffix=".pt")
+      try:
+          g.write(source)
+          g.flush()
+
+          # sleep for a short while to discover the new file
+          import time
+          time.sleep(0.1)
+
+          name = os.path.splitext(os.path.basename(g.name))[0]
+
+          # verify existence
+          from zope.component import queryUtility
+          from repoze.bfg.skins.interfaces import ISkinObject
+          template = queryUtility(ISkinObject, name=name)
+          if template:
+              output = template()
+      finally:
+          g.close()
+
+  finally:
+      os.removedirs(dir)
+
+  >>> assert template is not None
+  >>> print output
+  200 OK
+  Content-Length: 23
+  content-type: text/html; charset=UTF-8
+  <BLANKLINE>
+  <div>Hello world!</div>
+
+Compatibility:
+
+- Mac OS X 10.5+ (requires the ``pyfsevents`` library)

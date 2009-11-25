@@ -62,6 +62,7 @@ setup(name='repoze.bfg.skins',
           'zope.component==3.7.1',
           'zope.security==3.7.1',
           'zope.i18n==3.7.1',
+          'pyfsevents==0.3dev',
           ],
       test_suite="repoze.bfg.skins.tests",
       )

@@ -1,8 +1,13 @@
 import os
+import threading
+import weakref
+import logging
 
 from zope import interface
 from zope.component import getSiteManager
+from zope import component
 from zope.schema import TextLine
+from zope.schema import Bool
 
 from zope.configuration.fields import Path
 from zope.configuration.config import ConfigurationMachine
@@ -12,6 +17,9 @@ from repoze.bfg.zcml import IViewDirective
 from repoze.bfg.skins.models import SkinObject
 from repoze.bfg.skins.interfaces import ISkinObject
 from repoze.bfg.skins.interfaces import ISkinObjectFactory
+from repoze.bfg.threadlocal import manager
+
+logger = logging.getLogger("repoze.bfg.skins")
 
 def walk(path):
     os.lstat(path)
@@ -58,17 +66,95 @@ def register_skin_view(relative_path, path, kwargs):
         context, name=name, view=inst, **kwargs)
     context.execute_actions()
 
+class Discoverer(threading.Thread):
+    run = None
+
+    def __init__(self):
+        super(Discoverer, self).__init__()
+        self.paths = {}
+
+    def __del__(self):
+        self.stop()
+
+    def watch(self, path, handler):
+        if self.run is None:
+            raise ImportError(
+                "The ``pyfsevents`` library is not available. "
+                "This is required for run-time discovery.")
+
+        self.paths[path] = handler
+
+        # thread starts itself
+        if not self.isAlive():
+            self.start()
+
+    try:
+        import pyfsevents
+    except ImportError:
+        pass
+    else:
+        def run(self):
+            logger.info("Starting FS event listener.")
+            for path in self.paths:
+                self.register(path)
+            self.pyfsevents.listen()
+
+        def register(self, path):
+            def callback(path, subdir):
+                handler = self.paths[path.rstrip('/')]
+                handler.configure()
+            self.pyfsevents.registerpath(path, callback)
+
+        def stop(self):
+            for path in self.paths:
+                self.pyfsevents.unregisterpath(path)
+            self.pyfsevents.stop()
+            self.join()
+
 class skins(object):
-    def __init__(self, context, path):
+    threads = weakref.WeakValueDictionary()
+
+    def __init__(self, context, path=None, discovery=False):
+        self.registry = getSiteManager()
         self.context = context
-        self.path = os.path.normpath(path)
+        self.path = os.path.realpath(path).encode('utf-8')
         self.views = []
+
+        if discovery:
+            thread = self.threads.get(id(self.registry))
+            if thread is None:
+                thread = self.threads[id(self.registry)] = Discoverer()
+            thread.watch(self.path, self)
 
     def __call__(self):
         for skin in iter(self):
             yield skin
-        for view in self.views:
-            yield view
+
+        objects = {}
+        for relative_path, path in walk(self.path):
+            objects[relative_path] = path
+
+        for index, kwargs in self.views:
+            if index is not None:
+                for path in dirs(self.path):
+                    relative_path = os.path.join(path, index)
+                    skin_path = objects.get(relative_path)
+                    if skin_path is not None:
+                        objects[path] = skin_path
+
+            for relative_path, path in objects.items():
+                view = (relative_path, path, ISkinObject,) + \
+                       (kwargs.get('name'), kwargs.get('request_type'),
+                        kwargs.get('route_name'), kwargs.get('request_method'),
+                        kwargs.get('request_param'), kwargs.get('containment'),
+                        kwargs.get('attr'), kwargs.get('renderer'),
+                        kwargs.get('wrapper'), kwargs.get('xhr'),
+                        kwargs.get('accept'), kwargs.get('header'),
+                        kwargs.get('path_info')), \
+                        register_skin_view, \
+                        (relative_path, path, kwargs)
+
+                yield view
 
     def __iter__(self):
         for relative_path, path in walk(self.path):
@@ -76,38 +162,33 @@ class skins(object):
                   register_skin_object, \
                   (relative_path, path)
 
+    def configure(self):
+        gsm = component.getGlobalSiteManager
+        component.getGlobalSiteManager = component.getSiteManager
+        manager.push({'registry': self.registry})
+        try:
+            context = ConfigurationMachine()
+            for action in self():
+                context.action(*action)
+            context.execute_actions()
+        finally:
+            component.getGlobalSiteManager = gsm
+            manager.pop()
+
     def view(self, context, index=None, **kwargs):
         assert 'name' not in kwargs
-
-        objects = {}
-        for relative_path, path in walk(self.path):
-            objects[relative_path] = path
-
-        if index is not None:
-            for path in dirs(self.path):
-                relative_path = os.path.join(path, index)
-                skin_path = objects.get(relative_path)
-                if skin_path is not None:
-                    objects[path] = skin_path
-
-        for relative_path, path in objects.items():
-            view = (relative_path, path, ISkinObject,) + \
-                   (kwargs.get('name'), kwargs.get('request_type'),
-                    kwargs.get('route_name'), kwargs.get('request_method'),
-                    kwargs.get('request_param'), kwargs.get('containment'),
-                    kwargs.get('attr'), kwargs.get('renderer'),
-                    kwargs.get('wrapper'), kwargs.get('xhr'),
-                    kwargs.get('accept'), kwargs.get('header'),
-                    kwargs.get('path_info')), \
-                    register_skin_view, \
-                    (relative_path, path, kwargs)
-            self.views.append(view)
+        self.views.append((index, kwargs))
 
 class ISkinDirective(interface.Interface):
     path = Path(
         title=u"Path",
         description=u"Path to the directory containing the skin.",
         required=True)
+
+    discovery = Bool(
+        title=u"Discovery",
+        description=(u"Enables run-time discovery."),
+        required=False)
 
 class ISkinViewDirective(IViewDirective):
     index = TextLine(
