@@ -1,7 +1,7 @@
 Changelog
 =========
 
-In next release...
+0.18 (2009-11-26)
 
   - Added discovery support (Mac OS X and Linux).
 
