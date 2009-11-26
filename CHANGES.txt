@@ -3,7 +3,7 @@ Changelog
 
 In next release...
 
-  - Added discovery support.
+  - Added discovery support (Mac OS X and Linux).
 
   - Allow hyphens in the skin expression translator.
 

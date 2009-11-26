@@ -112,6 +112,39 @@ class Discoverer(threading.Thread):
             self.pyfsevents.stop()
             self.join()
 
+    try:
+        import pyinotify
+    except ImportError:
+        pass
+    else:
+        wm = pyinotify.WatchManager()
+
+        def run(self):
+            self.watches = []
+            mask = self.pyinotify.IN_CREATE
+
+            for path in self.paths:
+                wdd = self.wm.add_watch(path, mask, rec=True)
+                self.watches.append(wdd)
+
+            class Event(self.pyinotify.ProcessEvent):
+                def process_IN_CREATE(inst, event):
+                    subpath = event.path
+                    for path, handler in self.paths.items():
+                        if subpath.startswith(path):
+                            return handler.configure()
+
+            handler = Event()
+            notifier = self.notifier = self.pyinotify.Notifier(self.wm, handler)
+            notifier.loop()
+
+        def stop(self):
+            for wdd in self.watches:
+                self.wm.rm_watch(wdd.values())
+
+            self.notifier.stop()
+            self.join()
+
 class skins(object):
     threads = weakref.WeakValueDictionary()
 

@@ -312,3 +312,4 @@ Let's add a new skin template with the source::
 Compatibility:
 
 - Mac OS X 10.5+ (requires the ``pyfsevents`` library)
+- Linux 2.6.13+ with Libc >= 2.4 (requires ``pyinotify`` library)

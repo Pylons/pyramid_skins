@@ -13,6 +13,8 @@
 ##############################################################################
 
 import os
+import sys
+
 from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -33,6 +35,22 @@ install_requires =[
     'repoze.bfg',
     ]
 
+tests_require = []
+
+if sys.platform == "darwin":
+    tests_require.append("pyfsevents==0.3dev")
+if sys.platform.startswith("linux"):
+    tests_require.append("pyinotify==0.8.8")
+
+tests_require = install_requires + [
+    'manuel',
+    'zope.testing==3.8.3',
+    'zope.interface==3.5.2',
+    'zope.component==3.8.0',
+    'zope.security==3.7.2',
+    'zope.i18n==3.7.1',
+    ] + tests_require
+
 setup(name='repoze.bfg.skins',
       version = '0.17',
       description='Skin support for BFG.',
@@ -52,17 +70,12 @@ setup(name='repoze.bfg.skins',
       packages=find_packages('src'),
       package_dir = {'': 'src'},
       namespace_packages=['repoze', 'repoze.bfg'],
-      install_requires=install_requires,
       include_package_data = True,
       zip_safe = False,
-      tests_require = install_requires + [
-          'manuel',
-          'zope.testing==3.8.3',
-          'zope.interface==3.5.2',
-          'zope.component==3.7.1',
-          'zope.security==3.7.1',
-          'zope.i18n==3.7.1',
-          'pyfsevents==0.3dev',
-          ],
+      install_requires=install_requires,
+      tests_require = tests_require,
+      extras_require = {
+        'tests': [dep.split('==')[0] for dep in tests_require],
+          },
       test_suite="repoze.bfg.skins.tests",
       )
