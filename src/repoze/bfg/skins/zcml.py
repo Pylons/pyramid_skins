@@ -79,8 +79,8 @@ class Discoverer(threading.Thread):
     def watch(self, path, handler):
         if self.run is None:
             raise ImportError(
-                "The ``pyfsevents`` library is not available. "
-                "This is required for run-time discovery.")
+                "Must have either ``MacFSEvents`` (on Mac OS X) or "
+                "``pyinotify`` (Linux) to enable runtime discovery.")
 
         self.paths[path] = handler
 
@@ -89,7 +89,7 @@ class Discoverer(threading.Thread):
             self.start()
 
     try:
-        import pyfsevents
+        import fsevents
     except ImportError:
         pass
     else:
@@ -101,15 +101,14 @@ class Discoverer(threading.Thread):
                     if subpath.startswith(path):
                         return handler.configure()
 
-            for path in self.paths:
-                self.pyfsevents.registerpath(path, callback)
-
-            self.pyfsevents.listen()
+            stream = self.fsevents.Stream(callback, *self.paths)
+            observer = self.observer = self.fsevents.Observer()
+            observer.schedule(stream)
+            observer.run()
+            observer.unschedule(stream)
 
         def stop(self):
-            for path in self.paths:
-                self.pyfsevents.unregisterpath(path)
-            self.pyfsevents.stop()
+            self.observer.stop()
             self.join()
 
     try:

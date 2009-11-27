@@ -103,4 +103,4 @@ Indices and tables
 * :ref:`search`
 * :ref:`glossary`
 
-.. [#] Available on Mac OS 10.5+ (requires ``pyfsevents`` library) and Linux 2.6.13+ with Libc >= 2.4 (requires ``pyinotify`` library)
+.. [#] Available on Mac OS 10.5+ (requires ``MacFSEvents`` library) and Linux 2.6.13+ with Libc >= 2.4 (requires ``pyinotify`` library)

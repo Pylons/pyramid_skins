@@ -1,6 +1,10 @@
 Changelog
 =========
 
+In next release...
+
+  - Use the ``MacFSEvents`` module instead of ``pyfsevents``.
+
 0.18 (2009-11-26)
 
   - Added discovery support (Mac OS X and Linux).
