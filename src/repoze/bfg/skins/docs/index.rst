@@ -6,7 +6,7 @@
 The flexible skinning solution
 ==============================
 
-This package provides anextension to the `BFG
+This package provides an extension to the `BFG
 <http://bfg.repoze.org/>`_ framework for integrating code with
 templates and resources -- what's known as the *application skin*.
 
