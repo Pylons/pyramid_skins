@@ -1,9 +1,37 @@
 Registration
 ============
 
-We begin by registering the ``skins`` directory. This makes the
-files listed above available as skin components. The ZCML-directive
-``skins`` makes registration easy::
+In the course of this narrative we will demonstrate different usage
+scenarios. The example test setup contains the following files::
+
+  ./skins/index.pt
+  ./skins/main_template.pt
+  ./skins/images/logo.png
+  ./skins/about/index.pt
+  ./skins/about/images/logo.png
+
+         ↳ mount point
+
+.. -> output
+
+  >>> import os
+  >>> from repoze.bfg.skins import tests
+  >>> for filename in output.split('\n'):
+  ...     if filename.lstrip().startswith('.'):
+  ...         assert os.lstat(
+  ...             os.path.join(os.path.dirname(tests.__file__), filename.strip())) \
+  ...             is not None
+
+To explain this setup, imagine that the ``index.pt`` template
+represents some page in the site (e.g. the *front page*); it uses
+``main_template.pt`` as the :term:`o-wrap` template. The ``about``
+directory represents some editorial about-section where
+``about/index.pt`` is the index page. This section provides its own
+logo.
+
+We begin by registering the directory. This makes the files listed
+above available as skin components. The ZCML-directive ``skins`` makes
+registration easy::
 
   <configure xmlns="http://namespaces.repoze.org/bfg">
     <include package="repoze.bfg.skins" />
@@ -27,36 +55,6 @@ files listed above available as skin components. The ZCML-directive
 
 The ``path`` parameter indicates a relative path which defines the
 mount point for the skin registration.
-
-Skins
-#####
-
-In the course of this narrative we will demonstrate different usage
-scenarios. The example test setup contains the following files::
-
-  ./skins/index.pt
-  ./skins/main_template.pt
-  ./skins/images/logo.png
-  ./skins/about/index.pt
-  ./skins/about/images/logo.png
-
-         ↳ mount point
-
-.. -> output
-
-  >>> import os
-  >>> from repoze.bfg.skins import tests
-  >>> for filename in output.split('\n'):
-  ...     if filename.lstrip().startswith('.'):
-  ...         assert os.lstat(
-  ...             os.path.join(os.path.dirname(tests.__file__), filename.strip())) \
-  ...             is not None
-
-In this example, the ``index.pt`` template represents some application
-page (e.g. the front-page); it uses ``main_template.pt`` as the
-:term:`o-wrap` template. The ``about`` directory represents some
-editorial about-section where ``about/index.pt`` is the index
-page. This section provides its own logo.
 
 Components
 ##########
