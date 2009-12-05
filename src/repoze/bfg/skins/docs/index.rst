@@ -47,7 +47,9 @@ its file extension. This is a behavior of the *skin factory* for
 template files (with the ``.pt`` extension).
 
 We come back to this in much more detail, but here's how you would
-register this skin directory using ZCML::
+register the ``./skins`` directory using ZCML (we use the relative
+path here, assuming the ZCML configuration file is in the same
+directory)::
 
   <configure xmlns="http://namespaces.repoze.org/bfg">
     <include package="repoze.bfg.skins" />
@@ -55,7 +57,8 @@ register this skin directory using ZCML::
   </configure>
 
 That's it! This is all you need to start using skin objects in Python
-code::
+code. The ``index`` name now maps to the ``./skins/images.pt`` file on
+disk::
 
   from repoze.bfg.skins import SkinObject
   index = SkinObject("index")
