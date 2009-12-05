@@ -25,9 +25,29 @@ Skin expression
 ###############
 
 This package provides a new expression ``skin:`` which will retrieve a
-skin object by name. Lookups are either absolute or relative.
+skin object by name::
 
-Absolute
+  tal:define="inst skin: /main_template"
+
+.. -> define_main_template
+
+The pipe operator lets us provide one or more fallback options::
+
+  tal:define="inst skin: /images/logo.gif | skin: /images/logo.png"
+
+.. -> define_logo
+
+  >>> from chameleon.zpt.template import PageTemplate
+  >>> template = "<div %s tal:replace='inst.name' />"
+  >>> print PageTemplate(template % define_main_template)()
+  main_template
+  >>> print PageTemplate(template % define_logo)()
+  images/logo.png
+
+Whitespace is ignored in any case. Skin lookups are either absolute or
+relative.
+
+*Absolute*
 
   If the name begins with a slash ("/") character, it's considered an
   absolute lookup, e.g.::
@@ -36,7 +56,7 @@ Absolute
 
   This is a placeless lookup.
 
-Relative
+*Relative*
 
   If the name does not begin with a slash, it is a placeful lookup.
 
