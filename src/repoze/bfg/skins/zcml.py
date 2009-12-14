@@ -4,7 +4,6 @@ import weakref
 import logging
 
 from zope import interface
-from zope.component import getSiteManager
 from zope import component
 from zope.schema import TextLine
 from zope.schema import Bool
@@ -17,6 +16,7 @@ from repoze.bfg.zcml import IViewDirective
 from repoze.bfg.skins.models import SkinObject
 from repoze.bfg.skins.interfaces import ISkinObject
 from repoze.bfg.skins.interfaces import ISkinObjectFactory
+from repoze.bfg.threadlocal import get_current_registry
 from repoze.bfg.threadlocal import manager
 
 logger = logging.getLogger("repoze.bfg.skins")
@@ -35,25 +35,25 @@ def dirs(path):
         yield dir_path[len(path)+1:]
 
 def register_skin_object(relative_path, path):
-    gsm = getSiteManager()
+    registry = get_current_registry()
     ext = os.path.splitext(path)[1]
-    factory = gsm.queryUtility(ISkinObjectFactory, name=ext) or \
+    factory = registry.queryUtility(ISkinObjectFactory, name=ext) or \
               SkinObject
 
     name = factory.component_name(relative_path)
-    inst = gsm.queryUtility(ISkinObject, name=name)
+    inst = registry.queryUtility(ISkinObject, name=name)
 
     if inst is not None:
         inst.path = path
         inst.refresh()
     else:
         inst = factory(relative_path, path)
-        gsm.registerUtility(inst, ISkinObject, name)
+        registry.registerUtility(inst, ISkinObject, name)
 
 def register_skin_view(relative_path, path, kwargs):
-    gsm = getSiteManager()
+    registry = get_current_registry()
 
-    for inst in gsm.getAllUtilitiesRegisteredFor(ISkinObject):
+    for inst in registry.getAllUtilitiesRegisteredFor(ISkinObject):
         if inst.path == path:
             break
     else:
@@ -148,7 +148,7 @@ class skins(object):
     threads = weakref.WeakValueDictionary()
 
     def __init__(self, context, path=None, discovery=False):
-        self.registry = getSiteManager()
+        self.registry = get_current_registry()
         self.context = context
         self.path = os.path.realpath(path).encode('utf-8')
         self.views = []
@@ -197,7 +197,7 @@ class skins(object):
 
     def configure(self):
         gsm = component.getGlobalSiteManager
-        component.getGlobalSiteManager = component.getSiteManager
+        component.getGlobalSiteManager = get_current_registry
         manager.push({'registry': self.registry})
         try:
             context = ConfigurationMachine()
