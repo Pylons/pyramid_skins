@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.20 (2009-12-14)
+
+  - Compatibility fixes for BFG 1.2.
+
 0.19 (2009-11-27)
 
   - Use the ``MacFSEvents`` module instead of ``pyfsevents``.

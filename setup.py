@@ -51,7 +51,7 @@ tests_require = install_requires + [
     ] + tests_require
 
 setup(name='repoze.bfg.skins',
-      version = '0.19',
+      version = '0.20',
       description='Skin support for BFG.',
       long_description=long_description,
       keywords = "zope3 repoze bfg",
