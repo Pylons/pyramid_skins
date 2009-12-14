@@ -45,7 +45,6 @@ if sys.platform.startswith("linux"):
 tests_require = install_requires + [
     'manuel',
     'zope.testing==3.8.3',
-    'zope.interface==3.5.2',
     'zope.component==3.8.0',
     'zope.security==3.7.2',
     'zope.i18n==3.7.1',
