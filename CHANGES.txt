@@ -2,210 +2,231 @@ Changelog
 =========
 
 next release
+------------
 
-  - Add imperative configuration utility method.
+- Add imperative configuration utility method.
 
 0.20 (2009-12-14)
+-----------------
 
-  - Compatibility fixes for BFG 1.2.
+- Compatibility fixes for BFG 1.2.
 
 0.19 (2009-11-27)
+-----------------
 
-  - Use the ``MacFSEvents`` module instead of ``pyfsevents``.
+- Use the ``MacFSEvents`` module instead of ``pyfsevents``.
 
 0.18 (2009-11-26)
+-----------------
 
-  - Added discovery support (Mac OS X and Linux).
+- Added discovery support (Mac OS X and Linux).
 
-  - Allow hyphens in the skin expression translator.
+- Allow hyphens in the skin expression translator.
 
-  - Do not set charset on binary responses.
+- Do not set charset on binary responses.
 
-  - Add content length to static responses.
+- Add content length to static responses.
 
 0.17 (2009-11-16)
+-----------------
 
-  - Skin objects used as descriptors now pass on the class instance
-    dict as the keyword argument dictionary.
+- Skin objects used as descriptors now pass on the class instance
+  dict as the keyword argument dictionary.
 
-  - Skin templates may now be used as macros.
+- Skin templates may now be used as macros.
 
-  - Make sure expression syntax is correct.
+- Make sure expression syntax is correct.
 
 0.16 (2009-11-14)
+-----------------
 
-  - Acquisition-like skin object lookup from within templates,
-    e.g. ``skin: main_template`` will try to acquire the object from
-    the current skin object path (if applicable), while ``skin:
-    /main_template`` will always use an absolute (direct) lookup.
+- Acquisition-like skin object lookup from within templates,
+  e.g. ``skin: main_template`` will try to acquire the object from
+  the current skin object path (if applicable), while ``skin:
+  /main_template`` will always use an absolute (direct) lookup.
 
 0.15 (2009-11-12)
+-----------------
 
-  - Make ``name`` attribute public.
+- Make ``name`` attribute public.
 
-  - Normalize path (ZCML does this, but we might be used
-    imperatively).
+- Normalize path (ZCML does this, but we might be used
+  imperatively).
 
-  - Raise runtime-error if view is attempted registered for unknown
-    skin object (should never happen, but did because of an internal
-    bug).
+- Raise runtime-error if view is attempted registered for unknown
+  skin object (should never happen, but did because of an internal
+  bug).
 
 0.14 (2009-11-09)
+-----------------
 
-  - Look up skin object on call if object has not been resolved.
+- Look up skin object on call if object has not been resolved.
 
-  - Added index view registration option.
+- Added index view registration option.
 
-  - Use ``Chameleon`` egg.
+- Use ``Chameleon`` egg.
 
-  - Pin package versions for testing.
+- Pin package versions for testing.
 
 0.13 (2009-10-30)
+-----------------
 
-  - Rewrite. Backwards-compatibility broken.
+- Rewrite. Backwards-compatibility broken.
 
-    Migration path:
+  Migration path:
 
-    Skins registrartion directive renamed to <bfg:skins>.
+  Skins registrartion directive renamed to <bfg:skins>.
 
-    To register views for skin objects, the <bfg:view> directive
-    should be used inside a <bfg:skins> declaration. See
-    documentation.
+  To register views for skin objects, the <bfg:view> directive
+  should be used inside a <bfg:skins> declaration. See
+  documentation.
 
-    Previous users should consult documentation for more information.
+  Previous users should consult documentation for more information.
 
-  - Made compatible with repoze.bfg 1.1a4.
+- Made compatible with repoze.bfg 1.1a4.
 
-  - Disuse ``component.adapts`` (unuseable in any BFG app), to make
-    compatible with repoze.bfg 1.1a6+.
+- Disuse ``component.adapts`` (unuseable in any BFG app), to make
+  compatible with repoze.bfg 1.1a6+.
 
 0.12 (2009-02-12)
+-----------------
 
-  - Added convenience method ``get_skin_template_view``. [malthe]
+- Added convenience method ``get_skin_template_view``. [malthe]
 
-  - The ``get_skin_template`` method now accepts an optional
-    ``request_type`` parameter, which takes priority in
-    adaptation. [malthe]
+- The ``get_skin_template`` method now accepts an optional
+  ``request_type`` parameter, which takes priority in
+  adaptation. [malthe]
 
-  - The ``provides`` parameter has been retired; instead, a ``class``
-    parameter may be provided. By default this is set to the
-    ``SkinTemplate`` class; to register a view, simply set it to
-    ``SkinTemplateView`` (full module path required). [malthe]
+- The ``provides`` parameter has been retired; instead, a ``class``
+  parameter may be provided. By default this is set to the
+  ``SkinTemplate`` class; to register a view, simply set it to
+  ``SkinTemplateView`` (full module path required). [malthe]
 
 0.11 (2009-02-09)
+-----------------
 
-  - View permission is now only registered if a view must be
-    provided. [malthe]
+- View permission is now only registered if a view must be
+  provided. [malthe]
 
-  - Multiple interfaces may be specified as ``provides``. [malthe]
+- Multiple interfaces may be specified as ``provides``. [malthe]
 
 0.10 (2009-01-28)
+-----------------
 
-  - Added parameter ``content_type`` which will set the content type
-    of the view response. [malthe]
+- Added parameter ``content_type`` which will set the content type
+  of the view response. [malthe]
 
-  - Added ``macros`` attribute to the template object. [malthe]
+- Added ``macros`` attribute to the template object. [malthe]
 
 0.9 (2008-12-05)
+----------------
 
-  - Updated signatures for skin template factory lookup
-    functions. [malthe]
+- Updated signatures for skin template factory lookup
+  functions. [malthe]
 
-  - Added support for skin api methods. [malthe]
+- Added support for skin api methods. [malthe]
 
 0.8 (2008-12-05)
+----------------
 
-  - Provide ``ISkinMacro`` unless ``provides`` is set; however, always
-    provide ``ISkinTemplate``. Meanwhile, the macro accessor looks
-    only for skin templates registered for the ``ISkinMacro``
-    interface. [malthe]
+- Provide ``ISkinMacro`` unless ``provides`` is set; however, always
+  provide ``ISkinTemplate``. Meanwhile, the macro accessor looks
+  only for skin templates registered for the ``ISkinMacro``
+  interface. [malthe]
 
 0.7 (2008-12-04)
+----------------
 
-  - If ``provides`` is set, do not automatically provide the
-    ``ISkinTemplate`` interface as well; this behavior made it
-    difficult to program cascading rendering schemes. [malthe]
+- If ``provides`` is set, do not automatically provide the
+  ``ISkinTemplate`` interface as well; this behavior made it
+  difficult to program cascading rendering schemes. [malthe]
 
-  - Keyword-arguments are now accepted by the utility methods for
-    rendering skin templates using Python. [malthe]
+- Keyword-arguments are now accepted by the utility methods for
+  rendering skin templates using Python. [malthe]
 
-  - Added security assertions to macro rendering function to prevent
-    infinite loop if a template tries to render itself. [malthe]
+- Added security assertions to macro rendering function to prevent
+  infinite loop if a template tries to render itself. [malthe]
 
 0.6 (2008-12-03)
+----------------
 
-  - Do not register macro components separately, but make them
-    available from the ``macro`` attribute of a skin
-    template. [malthe]
+- Do not register macro components separately, but make them
+  available from the ``macro`` attribute of a skin
+  template. [malthe]
 
 0.5 (2008-12-03)
+----------------
 
-  - Added component lookup scheme for the bound skin template object
-    which makes skin API components available using ``get_<name>``
-    where <name> is the component name. [malthe]
+- Added component lookup scheme for the bound skin template object
+  which makes skin API components available using ``get_<name>``
+  where <name> is the component name. [malthe]
 
-  - Restructured package and changed look up scheme for skin APIs and
-    macros. A symbol ``template`` is now available to skin templates;
-    from this object, methods ``get_api`` and ``get_macro`` can be
-    used to look up skin APIs and macros, respectively. [malthe]
+- Restructured package and changed look up scheme for skin APIs and
+  macros. A symbol ``template`` is now available to skin templates;
+  from this object, methods ``get_api`` and ``get_macro`` can be
+  used to look up skin APIs and macros, respectively. [malthe]
 
-  - Added render_skin_template_to_response and render_skin_template
-    methods for general template rendering. [fairwinds]
+- Added render_skin_template_to_response and render_skin_template
+  methods for general template rendering. [fairwinds]
 
 0.4 (2008-11-13)
+----------------
 
-  - Added ``name`` attribute to skin template interface. [malthe]
+- Added ``name`` attribute to skin template interface. [malthe]
 
-  - No longer provide ``repoze.bfg.interfaces.IView`` by default; the
-    ``provides`` attribute may now be used to specify an additional
-    interface which the skin templates will provide. [malthe]
+- No longer provide ``repoze.bfg.interfaces.IView`` by default; the
+  ``provides`` attribute may now be used to specify an additional
+  interface which the skin templates will provide. [malthe]
 
 0.3 (2008-10-29)
+----------------
 
-  - Fix performance issue where template objects would be instantiated
-    at every call. [malthe]
+- Fix performance issue where template objects would be instantiated
+  at every call. [malthe]
 
-  - Pass keyword arguments to skin template callable. [malthe]
+- Pass keyword arguments to skin template callable. [malthe]
 
-  - Instantiate page template directly. [malthe]
+- Instantiate page template directly. [malthe]
 
 0.2 (2008-10-03)
+----------------
 
-  - Templates located in subdirectories are now named by replacing the
-    operating system path separator with a forward slash symbol (often
-    this will be the same character); before a dot '.' was
-    used. [malthe]
+- Templates located in subdirectories are now named by replacing the
+  operating system path separator with a forward slash symbol (often
+  this will be the same character); before a dot '.' was
+  used. [malthe]
 
-  - Added Template API base class. [malthe]
+- Added Template API base class. [malthe]
 
-  - Renamed ``IApi`` to ``ITemplateAPI``. [malthe]
+- Renamed ``IApi`` to ``ITemplateAPI``. [malthe]
 
-  - Template API components should adapt (context, request, template),
-    where ``template`` is the skin template object (such an API might
-    need to provide access to the template file itself, in order to
-    get a path to resources local to the template). [malthe]
+- Template API components should adapt (context, request, template),
+  where ``template`` is the skin template object (such an API might
+  need to provide access to the template file itself, in order to
+  get a path to resources local to the template). [malthe]
 
-  - Added ``render`` method to skin template class to allow rendering
-    to a string instead of to a WebOb response. [malthe]
+- Added ``render`` method to skin template class to allow rendering
+  to a string instead of to a WebOb response. [malthe]
 
-  - Renamed package to ``repoze.bfg.skins`` [seletz]
+- Renamed package to ``repoze.bfg.skins`` [seletz]
 
-  - Added logic to allow registering and acquiring template API
-    components from templates. [malthe]
+- Added logic to allow registering and acquiring template API
+  components from templates. [malthe]
 
-  - Changed the Skin Template View to be a class, and added a minimal
-    interface ISkinTemplate to access the template path [seletz]
+- Changed the Skin Template View to be a class, and added a minimal
+  interface ISkinTemplate to access the template path [seletz]
 
-  - Fixed a bug where we did not tear down the tests correctly
-    [seletz]
+- Fixed a bug where we did not tear down the tests correctly
+  [seletz]
 
-  - Fixed bug where the INewRequest event handler would call templates
-    when checking for their existence [seletz]
+- Fixed bug where the INewRequest event handler would call templates
+  when checking for their existence [seletz]
 
 0.1 (2008-09-25)
+----------------
 
-  - Initial release [malthe]
+- Initial release [malthe]
 
-  - Added support to dynamically register templates if they are added
-    to a registered template directory [seletz]
+- Added support to dynamically register templates if they are added
+  to a registered template directory [seletz]
 
