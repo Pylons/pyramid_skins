@@ -304,7 +304,7 @@ Let's add a new skin template with the source::
   >>> print output
   200 OK
   Content-Length: 23
-  content-type: text/html; charset=UTF-8
+  Content-Type: text/html; charset=UTF-8
   <BLANKLINE>
   <div>Hello world!</div>
 
