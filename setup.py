@@ -30,7 +30,6 @@ install_requires =[
     'zope.interface',
     'zope.component',
     'zope.configuration',
-    'zope.security',
     'zope.testing',
     'repoze.bfg',
     ]
@@ -44,10 +43,8 @@ if sys.platform.startswith("linux"):
 
 tests_require = install_requires + [
     'manuel',
-    'zope.testing==3.8.3',
-    'zope.component==3.8.0',
-    'zope.security==3.7.2',
-    'zope.i18n==3.7.1',
+    'zope.testing==3.8.7',
+    'zope.component==3.9.2',
     ] + tests_require
 
 setup(name='repoze.bfg.skins',
