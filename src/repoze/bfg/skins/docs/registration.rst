@@ -56,6 +56,7 @@ registration easy::
 The ``path`` parameter indicates a relative path which defines the
 mount point for the skin registration.
 
+
 Components
 ##########
 
@@ -307,7 +308,18 @@ Let's add a new skin template with the source::
   <BLANKLINE>
   <div>Hello world!</div>
 
-Compatibility:
-
+Compatibility
+-------------
 - Mac OS X 10.5+ (requires the ``MacFSEvents`` library)
 - Linux 2.6.13+ with Libc >= 2.4 (requires ``pyinotify`` library)
+
+
+Imperative configuration
+========================
+If you prefer imperative configuration over declarative you can use the
+``register_path`` method to configure skins::
+
+  from repoze.bfg.skins.configuration import register_path
+  register_path("templates", discovery=True)
+
+
