@@ -57,7 +57,7 @@ directory)::
   </configure>
 
 That's it! This is all you need to start using skin objects in Python
-code. The ``index`` name now maps to the ``./skins/images.pt`` file on
+code. The ``index`` name now maps to the ``./skins/index.pt`` file on
 disk::
 
   from repoze.bfg.skins import SkinObject
