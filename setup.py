@@ -38,13 +38,14 @@ tests_require = []
 
 if sys.platform == "darwin":
     tests_require.append("MacFSEvents==0.1")
+
 if sys.platform.startswith("linux"):
     tests_require.append("pyinotify==0.8.8")
 
 tests_require = install_requires + [
     'manuel',
-    'zope.testing==3.8.7',
-    'zope.component==3.9.2',
+    'zope.testing>3.8.7',
+    'zope.component>3.9.2',
     ] + tests_require
 
 setup(name='repoze.bfg.skins',
