@@ -276,6 +276,10 @@ Let's add a new skin template with the source::
            %(configuration)s
          </configure>""".strip() % locals())
 
+      # Wait a while for the discoverer to start up
+      import time
+      time.sleep(0.5)
+
       # add new file for discovery
       g = tempfile.NamedTemporaryFile(dir=dir, suffix=".pt")
       try:
@@ -284,7 +288,7 @@ Let's add a new skin template with the source::
 
           # sleep for a short while to discover the new file
           import time
-          time.sleep(0.1)
+          time.sleep(0.5)
 
           name = os.path.splitext(os.path.basename(g.name))[0]
 
@@ -292,6 +296,7 @@ Let's add a new skin template with the source::
           from zope.component import queryUtility
           from repoze.bfg.skins.interfaces import ISkinObject
           template = queryUtility(ISkinObject, name=name)
+          assert template is not None, "Template does not exist: " + name
           if template:
               output = template()
       finally:
@@ -300,7 +305,6 @@ Let's add a new skin template with the source::
   finally:
       os.removedirs(dir)
 
-  >>> assert template is not None
   >>> print output
   200 OK
   Content-Length: 23
