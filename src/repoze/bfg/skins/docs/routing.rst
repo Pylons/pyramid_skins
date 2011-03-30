@@ -86,6 +86,7 @@ factory::
      name="skins"
      path="/static/*subpath"
      factory="repoze.bfg.skins.RoutesTraverserFactory"
+     use_global_views="True"
      />
 
 .. -> configuration
@@ -95,8 +96,8 @@ factory::
   ...   <include package="repoze.bfg.includes" file="meta.zcml" />
   ...   %(configuration)s
   ... </configure>""".strip() % locals())
-  >>> from zope.component import getSiteManager
-  >>> registry = getSiteManager()
+  >>> from repoze.bfg.threadlocal import get_current_registry
+  >>> registry = get_current_registry()
   >>> from repoze.bfg.router import Router
   >>> router = Router(registry)
   >>> environ = {
@@ -111,7 +112,7 @@ factory::
   >>> from zope.component import getUtility
   >>> router.root_factory = getUtility(IRoutesMapper)
   >>> app_iter = router(environ, start_response)
-  ('200 OK', [('Content-Length', '2833'), ('content-type', 'image/png')])
+  ('200 OK', [('Content-Length', '2833'), ('Content-Type', 'image/png')])
 
 This traverser will convert ``subpath`` into a view name which then
 prompts the BFG router to publish the skin object (by calling it).
