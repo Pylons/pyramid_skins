@@ -98,7 +98,7 @@ In the :ref:`framework integration <framework-integration>` section we learn how
 up a route to serve up skin objects as static resources or even views.
 
   >>> from repoze.bfg.testing import registerRoute
-  >>> registerRoute("/static", "static")
+  >>> route = registerRoute("/static", "static")
   >>> from chameleon.zpt.template import PageTemplate
   >>> template = PageTemplate(source)
   >>> from repoze.bfg.testing import DummyRequest
