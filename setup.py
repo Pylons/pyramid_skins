@@ -37,7 +37,7 @@ install_requires =[
 tests_require = []
 
 if sys.platform == "darwin":
-    tests_require.append("MacFSEvents==0.1")
+    tests_require.append("MacFSEvents")
 
 if sys.platform.startswith("linux"):
     tests_require.append("pyinotify==0.8.8")
