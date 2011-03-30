@@ -9,6 +9,8 @@ from chameleon.zpt.interfaces import IExpressionTranslator
 
 from repoze.bfg.skins.interfaces import ISkinObject
 from repoze.bfg.url import route_url
+from repoze.bfg.threadlocal import get_current_request
+
 
 class SkinTranslator(ExpressionTranslator):
     interface.implements(IExpressionTranslator)
@@ -28,6 +30,7 @@ class SkinTranslator(ExpressionTranslator):
         value.symbol_mapping[self.symbol] = _lookup_skin
         return value
 
+
 class RouteTranslator(ExpressionTranslator):
     interface.implements(IExpressionTranslator)
 
@@ -42,17 +45,29 @@ class RouteTranslator(ExpressionTranslator):
         value.symbol_mapping[self.symbol] = route_url
         return value
 
+
+def _lookup_component(request, name):
+    return component.queryAdapter(request, ISkinObject, name=name) or \
+           component.getUtility(ISkinObject, name=name)
+
+
 def _lookup_skin(name, template):
+    request = get_current_request()
+
     if name.startswith('/'):
-        return component.getUtility(ISkinObject, name=name[1:])
+        return _lookup_component(request, name[1:])
+
     if not ISkinObject.providedBy(template):
         raise TypeError(
             "Relative lookup for '%s' invalid for template class: %s." % (
                 name, type(template)))
     path = '/' + template.name
     while path:
-        inst = component.queryUtility(ISkinObject, name="%s/%s" % (path[1:], name))
-        if inst is not None:
-            return inst
+        try:
+            return _lookup_component(request, "%s/%s" % (path[1:], name))
+        except component.ComponentLookupError:
+            pass
+
         path = path[:path.rindex('/')]
-    return component.getUtility(ISkinObject, name=name)
+
+    return _lookup_component(request, name)

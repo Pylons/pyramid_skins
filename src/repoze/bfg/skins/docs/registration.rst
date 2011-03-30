@@ -156,6 +156,41 @@ Calling the ``logo`` object returns an HTTP response::
   >>> response.headers['content-type']
   'image/png'
 
+
+Request-specific skins
+######################
+
+Instead of global utility skin components, we can provide a request
+type:
+
+  <configure xmlns="http://namespaces.repoze.org/bfg">
+    <include package="repoze.bfg.skins" />
+    <skins path="skins" request_type="repoze.bfg.interfaces.IRequest" />
+  </configure>
+
+.. -> configuration
+
+.. invisible-code-block: python
+
+  from zope.configuration.xmlconfig import string
+  _ = string("""
+     <configure xmlns="http://namespaces.repoze.org/bfg" package="repoze.bfg.skins.tests">
+     <include package="repoze.bfg.includes" file="meta.zcml" />
+       %(configuration)s
+     </configure>""".strip() % locals())
+
+The skin component is now registered as a named adapter on the
+request:
+
+  >>> from repoze.bfg.testing import DummyRequest
+  >>> request = DummyRequest()
+
+We use the ``getAdapter`` call:
+
+  >>> from zope.component import getAdapter
+  >>> getAdapter(request, ISkinObject, name="index")
+  <repoze.bfg.skins.models.SkinTemplate name="index" path=".../skins/index.pt" at ...>
+
 Views
 #####
 

@@ -6,10 +6,12 @@ import webob
 from zope.interface import implements
 from zope.interface import classProvides
 from zope.component import getUtility
+from zope.component import queryAdapter
 from chameleon.zpt.template import PageTemplateFile
 
 from repoze.bfg.skins.interfaces import ISkinObject
 from repoze.bfg.skins.interfaces import ISkinObjectFactory
+from repoze.bfg.threadlocal import get_current_request
 
 class SkinObject(object):
     implements(ISkinObject)
@@ -50,7 +52,8 @@ class SkinObject(object):
         return response
 
     def __get__(self, view=None, cls=None):
-        inst = getUtility(ISkinObject, name=self.name)
+        inst = queryAdapter(get_current_request(), ISkinObject, name=self.name) or \
+               getUtility(ISkinObject, name=self.name)
         inst = copy.copy(inst)
         if view is not None:
             inst._bound_kwargs = view.__dict__

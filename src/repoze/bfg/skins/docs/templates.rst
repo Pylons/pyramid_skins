@@ -7,7 +7,13 @@
   ...            package="repoze.bfg.skins.tests">
   ...   <include package="repoze.bfg.includes" file="meta.zcml" />
   ...   <include package="repoze.bfg.skins" />
-  ...   <skins path="skins" />
+  ...
+  ...     <!-- global skin -->
+  ...     <skins path="skins" />
+  ...
+  ...     <!-- request-specific -->
+  ...     <skins path="alt_skins" request_type="repoze.bfg.interfaces.IRequest" />
+  ...
   ...   </configure>""".strip() % locals())
 
 Templates
@@ -38,11 +44,11 @@ The pipe operator lets us provide one or more fallback options::
 .. -> define_logo
 
   >>> from chameleon.zpt.template import PageTemplate
-  >>> template = "<div %s tal:replace='inst.name' />"
+  >>> template = "<div %s tal:replace='inst.path' />"
   >>> print PageTemplate(template % define_main_template)()
-  main_template
+  /.../skins/main_template.pt
   >>> print PageTemplate(template % define_logo)()
-  images/logo.png
+  /.../skins/images/logo.png
 
 Whitespace is ignored in any case. Skin lookups are either absolute or
 relative.
@@ -72,8 +78,8 @@ relative.
 
     /images/logo.png
 
-  This is akin to *acquisition* (the object is attempted acquired from
-  the current context and below). It can be used to redefine skin
+  This is similar to *acquisition* (the object is attempted acquired
+  from the current context and below). It can be used to redefine skin
   objects for a particular location and below.
 
   >>> from zope.component import getUtility
@@ -83,6 +89,32 @@ relative.
   <html>
    ... <img src="/about/images/logo.png" /> ...
   </html>
+
+Finally, skins may also be request-specific. In the setup for this
+test, we have registered an alternative skins directory for the
+standard ``IRequest`` layer. The standard dummy request provides this
+layer:
+
+  >>> from repoze.bfg.threadlocal import manager
+  >>> from repoze.bfg.testing import DummyRequest
+  >>> manager.get()['request'] = DummyRequest()
+
+We can now see that the 'main_template' skin object is resolved from
+the skins path registered for the ``IRequest`` layer
+(``"alt_skins"``):
+
+  >>> print PageTemplate(template % define_main_template)()
+  /.../alt_skins/main_template.pt
+
+This applies also to the ``SkinObject`` constructor:
+
+  >>> from repoze.bfg.skins import SkinObject
+  >>> SkinObject("main_template").__get__().path
+  '/.../alt_skins/main_template.pt'
+
+Remove request again.
+
+  >>> manager.get()['request'] = None
 
 Route expression
 ################

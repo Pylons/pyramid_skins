@@ -18,37 +18,60 @@ from repoze.bfg.skins.interfaces import ISkinObject
 from repoze.bfg.skins.interfaces import ISkinObjectFactory
 from repoze.bfg.threadlocal import get_current_registry
 from repoze.bfg.threadlocal import manager
+from repoze.bfg.configuration import Configurator
 
 logger = logging.getLogger("repoze.bfg.skins")
+
+import repoze.bfg.skins as package
+
 
 def walk(path):
     os.lstat(path)
     for dir_path, dirs, filenames in os.walk(path):
         for filename in filenames:
             full_path = os.path.join(dir_path, filename)
-            rel_path = full_path[len(path)+1:]
+            rel_path = full_path[len(path) + 1:]
             yield rel_path.replace(os.path.sep, '/'), str(full_path)
+
 
 def dirs(path):
     os.lstat(path)
     for dir_path, dirs, filenames in os.walk(path):
-        yield dir_path[len(path)+1:]
+        yield dir_path[len(path) + 1:]
 
-def register_skin_object(relative_path, path):
+
+def register_skin_object(relative_path, path, request_type):
     registry = get_current_registry()
+
     ext = os.path.splitext(path)[1]
     factory = registry.queryUtility(ISkinObjectFactory, name=ext) or \
               SkinObject
 
     name = factory.component_name(relative_path)
-    inst = registry.queryUtility(ISkinObject, name=name)
+
+    if request_type is not None:
+        inst = registry.adapters.lookup(
+            (request_type, ), ISkinObject, name=name, default=None
+            )
+    else:
+        inst = registry.queryUtility(ISkinObject, name=name)
 
     if inst is not None:
         inst.path = path
         inst.refresh()
     else:
         inst = factory(relative_path, path)
-        registry.registerUtility(inst, ISkinObject, name)
+
+        def adapter(request):
+            return inst
+
+        if request_type is not None:
+            registry.registerAdapter(
+                adapter, (request_type, ), ISkinObject, name=name
+                )
+        else:
+            registry.registerUtility(inst, ISkinObject, name)
+
 
 def register_skin_view(relative_path, path, kwargs):
     registry = get_current_registry()
@@ -144,14 +167,17 @@ class Discoverer(threading.Thread):
             self.notifier.stop()
             self.join()
 
+
 class skins(object):
     threads = weakref.WeakValueDictionary()
 
-    def __init__(self, context, path=None, discovery=False):
+    def __init__(self, context, path=None, discovery=False, request_type=None):
         self.registry = get_current_registry()
         self.context = context
         self.path = os.path.realpath(path).encode('utf-8')
         self.views = []
+        self.request_type = Configurator(self.registry, package=package).\
+                            maybe_dotted(request_type)
 
         if discovery:
             thread = self.threads.get(id(self.registry))
@@ -193,7 +219,7 @@ class skins(object):
         for relative_path, path in walk(self.path):
             yield (relative_path, path, ISkinObject), \
                   register_skin_object, \
-                  (relative_path, path)
+                  (relative_path, path, self.request_type)
 
     def configure(self):
         gsm = component.getGlobalSiteManager
@@ -210,7 +236,9 @@ class skins(object):
 
     def view(self, context, index=None, **kwargs):
         assert 'name' not in kwargs
+        kwargs.setdefault('request_type', self.request_type)
         self.views.append((index, kwargs))
+
 
 class ISkinDirective(interface.Interface):
     path = Path(
@@ -222,6 +250,14 @@ class ISkinDirective(interface.Interface):
         title=u"Discovery",
         description=(u"Enables run-time discovery."),
         required=False)
+
+    request_type = TextLine(
+        title=u"The request type string or dotted name interface.",
+        description=(u"If provided, skin objects will be registered "
+                     u"as named adapters for the request type interface."),
+        required=False,
+        )
+
 
 class ISkinViewDirective(IViewDirective):
     index = TextLine(
