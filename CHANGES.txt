@@ -83,7 +83,7 @@ Changelog
 
   Migration path:
 
-  Skins registrartion directive renamed to <bfg:skins>.
+  Skins registration directive renamed to <bfg:skins>.
 
   To register views for skin objects, the <bfg:view> directive
   should be used inside a <bfg:skins> declaration. See
