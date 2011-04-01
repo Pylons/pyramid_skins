@@ -1,7 +1,8 @@
 Changelog
 =========
 
-In the next release...
+0.21 (2011-04-01)
+-----------------
 
 - Allow request-specific skin registration (using the ``request_type``
   parameter to the skins directive). The request is retrieved from the
