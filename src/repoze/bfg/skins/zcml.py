@@ -58,7 +58,10 @@ def register_skin_object(relative_path, path, request_type):
 
     if inst is not None:
         inst.path = path
-        inst.refresh()
+        if request_type is not None:
+            inst(request_type).refresh()
+        else:
+            inst.refresh()
     else:
         inst = factory(relative_path, path)
 
@@ -96,9 +99,6 @@ class Discoverer(threading.Thread):
         super(Discoverer, self).__init__()
         self.paths = {}
 
-    def __del__(self):
-        self.stop()
-
     def watch(self, path, handler):
         if self.run is None:
             raise ImportError(
@@ -125,14 +125,12 @@ class Discoverer(threading.Thread):
                         return handler.configure()
 
             stream = self.fsevents.Stream(callback, *self.paths)
-            observer = self.observer = self.fsevents.Observer()
+            observer = self.fsevents.Observer()
             observer.schedule(stream)
             observer.run()
             observer.unschedule(stream)
-
-        def stop(self):
-            self.observer.stop()
-            self.join()
+            observer.stop()
+            observer.join()
 
     try:
         import pyinotify
@@ -157,15 +155,13 @@ class Discoverer(threading.Thread):
                             return handler.configure()
 
             handler = Event()
-            notifier = self.notifier = self.pyinotify.Notifier(self.wm, handler)
+            notifier = self.pyinotify.Notifier(self.wm, handler)
             notifier.loop()
-
-        def stop(self):
             for wdd in self.watches:
                 self.wm.rm_watch(wdd.values())
+            notifier.stop()
+            notifier.join()
 
-            self.notifier.stop()
-            self.join()
 
 
 class skins(object):
