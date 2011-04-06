@@ -4,6 +4,7 @@ Changelog
 0.22 (unreleased)
 -----------------
 
+- Fix skin reloading for request-specific skins.
 
 0.21 (2011-04-01)
 -----------------
