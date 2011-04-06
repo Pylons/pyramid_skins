@@ -10,4 +10,4 @@ def register_path(path, discovery=False, indexes=[], request_type=None):
     for index in indexes:
         stmt.view(context, index)
     stmt.configure()
-
+    return stmt
