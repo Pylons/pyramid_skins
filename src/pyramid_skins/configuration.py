@@ -28,7 +28,7 @@ def register_path(config, spec, discovery=False, indexes=[], request_type=None):
         path = caller_path(path)
 
     context = PyramidConfigurationMachine()
-    context.registry = get_current_registry()
+    context.registry = config.registry
 
     directive = skins(context, path, discovery, request_type)
     for index in indexes:

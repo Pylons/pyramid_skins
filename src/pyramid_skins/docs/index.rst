@@ -54,6 +54,8 @@ configurator::
   from pyramid.config import Configurator
   config = Configurator()
 
+  config.include(pyramid_skins)
+
   from pyramid_skins.configuration import register_path
   register_path(config, "pyramid_skins:tests/skins")
 

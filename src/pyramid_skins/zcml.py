@@ -173,8 +173,10 @@ class skins(object):
     def __call__(self):
         registry = self.context.registry
 
-        for skin in iter(self):
-            yield skin
+        for relative_path, path in walk(self.path):
+            yield (relative_path, path, ISkinObject), \
+                  register_skin_object, \
+                  (registry, relative_path, path, self.request_type)
 
         objects = {}
         for relative_path, path in walk(self.path):
@@ -201,14 +203,6 @@ class skins(object):
                         (registry, relative_path, path, kwargs)
 
                 yield view
-
-    def __iter__(self):
-        registry = self.context.registry
-
-        for relative_path, path in walk(self.path):
-            yield (relative_path, path, ISkinObject), \
-                  register_skin_object, \
-                  (self.context.registry, relative_path, path, self.request_type)
 
     def configure(self):
         config = Configurator.with_context(self.context)

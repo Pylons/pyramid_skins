@@ -270,6 +270,27 @@ passed ``'Hello world!'`` as the view context::
   >>> frontpage1.replace('\n\n', '\n') == frontpage2.replace('\n\n', '\n') == output
   True
 
+Renderer
+########
+
+The package comes with a renderer factory for skin objects. It looks
+up a skin object based on view name.
+
+.. automodule:: pyramid_skins.renderer
+
+   .. autofunction:: renderer_factory
+
+In your application setup, use the ``add_renderer`` method::
+
+  config.add_renderer('skin', renderer_factory)
+
+Example view::
+
+  @view_config(name='index', renderer='skin')
+  def index(request):
+      return {'title': 'My application'}
+
+
 Discovery
 #########
 
