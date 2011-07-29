@@ -12,12 +12,14 @@ failing that, the base class is used.
 
 Skin object classes must inherit from the ``SkinObject`` base
 class. To register a custom class for some file extension, use the
-extension as the utility component name::
+extension as the utility component name:
+
+.. code-block:: xml
 
    <utility
       name=".my"
       component=".MySkinObject"
-      provides="repoze.bfg.skins.interfaces.ISkinObjectFactory"
+      provides="pyramid_skins.interfaces.ISkinObjectFactory"
       />
 
 An example of such a custom factory is the skin template class. It

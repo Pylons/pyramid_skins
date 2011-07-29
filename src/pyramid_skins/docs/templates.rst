@@ -1,18 +1,19 @@
 .. We set up the skin components from the getting started section
 .. behind the scenes.
 
-  >>> from zope.configuration.xmlconfig import string
-  >>> _ = string("""
-  ... <configure xmlns="http://namespaces.repoze.org/bfg"
-  ...            package="repoze.bfg.skins.tests">
-  ...   <include package="repoze.bfg.includes" file="meta.zcml" />
-  ...   <include package="repoze.bfg.skins" />
+  >>> _ = xmlconfig("""
+  ... <configure xmlns="http://pylonshq.com/pyramid"
+  ...            package="pyramid_skins.tests">
+  ...   <include package="pyramid_zcml" file="meta.zcml" />
+  ...   <include package="pyramid_skins" />
   ...
   ...     <!-- global skin -->
   ...     <skins path="skins" />
   ...
   ...     <!-- request-specific -->
-  ...     <skins path="alt_skins" request_type="repoze.bfg.interfaces.IRequest" />
+  ...     <skins path="alt_skins"
+  ...            request_type=".tests.IAlternativeRequest"
+  ...        />
   ...
   ...   </configure>""".strip() % locals())
 
@@ -43,11 +44,25 @@ The pipe operator lets us provide one or more fallback options::
 
 .. -> define_logo
 
-  >>> from chameleon.zpt.template import PageTemplate
+  >>> def render_template(string, **context):
+  ...     from tempfile import NamedTemporaryFile
+  ...     f = NamedTemporaryFile(suffix=".pt")
+  ...     f.write(string)
+  ...     f.flush()
+  ...     from pyramid_skins.zcml import register_skin_object
+  ...     register_skin_object(registry, string, f.name, None)
+  ...     from pyramid_skins import SkinObject
+  ...     inst = SkinObject(string)
+  ...     try:
+  ...         return inst(**context).body
+  ...     finally:
+  ...         f.close()
+
   >>> template = "<div %s tal:replace='inst.path' />"
-  >>> print PageTemplate(template % define_main_template)()
+
+  >>> print render_template(template % define_main_template)
   /.../skins/main_template.pt
-  >>> print PageTemplate(template % define_logo)()
+  >>> print render_template(template % define_logo)
   /.../skins/images/logo.png
 
 Whitespace is ignored in any case. Skin lookups are either absolute or
@@ -83,7 +98,7 @@ relative.
   objects for a particular location and below.
 
   >>> from zope.component import getUtility
-  >>> from repoze.bfg.skins.interfaces import ISkinObject
+  >>> from pyramid_skins.interfaces import ISkinObject
   >>> about = getUtility(ISkinObject, name="about/index")
   >>> print about(context=u"Hello world!").body
   <html>
@@ -95,31 +110,39 @@ test, we have registered an alternative skins directory for the
 standard ``IRequest`` layer. The standard dummy request provides this
 layer:
 
-  >>> from repoze.bfg.threadlocal import manager
-  >>> from repoze.bfg.testing import DummyRequest
-  >>> manager.get()['request'] = DummyRequest()
+  >>> from pyramid_skins.tests import IAlternativeRequest
+  >>> from zope.interface import alsoProvides
+  >>> alsoProvides(request, IAlternativeRequest)
 
 We can now see that the 'main_template' skin object is resolved from
 the skins path registered for the ``IRequest`` layer
 (``"alt_skins"``):
 
-  >>> print PageTemplate(template % define_main_template)()
+  >>> print render_template(template % define_main_template)
   /.../alt_skins/main_template.pt
 
 This applies also to the ``SkinObject`` constructor:
 
-  >>> from repoze.bfg.skins import SkinObject
-  >>> SkinObject("main_template").__get__().path
-  '/.../alt_skins/main_template.pt'
+  >>> from pyramid_skins import SkinObject
+  >>> bound = SkinObject("main_template").__get__()
+  >>> response = bound()
+  >>> print response.body
+  <html>
+    <title>Alternative</title>
+    <body>
+      Hello template!
+    </body>
+  </html>
 
 Remove request again.
 
-  >>> manager.get()['request'] = None
+  >>> from zope.interface import noLongerProvides
+  >>> noLongerProvides(request, IAlternativeRequest)
 
 Route expression
 ################
 
-The ``route:`` expression maps to the ``repoze.bfg.url.route_url``
+The ``route:`` expression maps to the ``pyramid.url.route_url``
 framework function::
 
   <img tal:attributes="src string:${route: static}/images/logo.png" />
@@ -129,17 +152,14 @@ framework function::
 In the :ref:`framework integration <framework-integration>` section we learn how you can set
 up a route to serve up skin objects as static resources or even views.
 
-  >>> from repoze.bfg.testing import registerRoute
+  >>> from pyramid.testing import registerRoute
   >>> route = registerRoute("/static", "static")
-  >>> from chameleon.zpt.template import PageTemplate
-  >>> template = PageTemplate(source)
-  >>> from repoze.bfg.testing import DummyRequest
-  >>> print template(request=DummyRequest())
+  >>> print render_template(source)
   <img src="http://example.com/static/images/logo.png" />
 
 This is a convenient way to compute the URL for static resources. See
-the `repoze.bfg url documentation
-<http://docs.repoze.org/bfg/1.1/api/url.html#repoze.bfg.url.static_url>`_
+the `Pyramid url documentation
+<http://docs.pylonsproject.org/projects/pyramid/1.1/api/url.html#pyramid.url.static_url>`_
 for more information on URL generation.
 
 Macro support
@@ -157,8 +177,7 @@ attribute to reach them::
 
 .. -> source
 
-  >>> template = PageTemplate(source)
-  >>> print template()
+  >>> print render_template(source)
   <body>
     Inserted.
   </body>
@@ -174,8 +193,7 @@ the entire template is rendered::
 
 .. -> source
 
-  >>> template = PageTemplate(source)
-  >>> print template()
+  >>> print render_template(source)
   <html>
     <body>
       Inserted.

@@ -1,5 +1,6 @@
 from zope import interface
-from repoze.bfg.interfaces import IView
+from pyramid.interfaces import IView
+
 
 class ISkinObject(interface.Interface):
     name = interface.Attribute(
@@ -8,10 +9,12 @@ class ISkinObject(interface.Interface):
     def refresh():
         """Refresh object from file on disk (reload)."""
 
+
 class ISkinObjectFactory(interface.Interface):
     def component_name(relative_path):
         """Returns a component name. This method must be a
         class- or static method."""
+
 
 class ISkinTemplate(interface.Interface):
     """Skin templates are page templates which reside in a skin
@@ -39,6 +42,7 @@ class ISkinTemplate(interface.Interface):
     def get_macro(name):
         """Look up skin macro by name."""
 
+
 class IBoundSkinTemplate(ISkinTemplate):
     """Bound to a context and request."""
 
@@ -48,6 +52,7 @@ class IBoundSkinTemplate(ISkinTemplate):
     def render(**kwargs):
         """Renders template to a unicode string, passing optional
         keyword-arguments."""
+
 
 class ISkinTemplateView(IView):
     """When skin templates are set to provide one or more interfaces,
@@ -63,10 +68,12 @@ class ISkinTemplateView(IView):
         """Renders template to a unicode string, passing optional
         keyword-arguments."""
 
+
 class ISkinApi(interface.Interface):
     """A helper component available to skin templates. Skin APIs
     should be registered as named components adapting on (context,
     request, template)."""
+
 
 class ISkinApiMethod(interface.Interface):
     """Skin API methods are an alternative to a generic API and get

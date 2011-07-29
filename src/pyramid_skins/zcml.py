@@ -4,25 +4,20 @@ import weakref
 import logging
 
 from zope import interface
-from zope import component
 from zope.schema import TextLine
 from zope.schema import Bool
 
 from zope.configuration.fields import Path
-from zope.configuration.config import ConfigurationMachine
 
-from repoze.bfg.zcml import view as register_bfg_view
-from repoze.bfg.zcml import IViewDirective
-from repoze.bfg.skins.models import SkinObject
-from repoze.bfg.skins.interfaces import ISkinObject
-from repoze.bfg.skins.interfaces import ISkinObjectFactory
-from repoze.bfg.threadlocal import get_current_registry
-from repoze.bfg.threadlocal import manager
-from repoze.bfg.configuration import Configurator
+from pyramid_zcml import IViewDirective
+from pyramid_skins.models import SkinObject
+from pyramid_skins.interfaces import ISkinObject
+from pyramid_skins.interfaces import ISkinObjectFactory
+from pyramid.configuration import Configurator
 
-logger = logging.getLogger("repoze.bfg.skins")
+logger = logging.getLogger("pyramid_skins")
 
-import repoze.bfg.skins as package
+import pyramid_skins as package
 
 
 def walk(path):
@@ -40,9 +35,7 @@ def dirs(path):
         yield dir_path[len(path) + 1:]
 
 
-def register_skin_object(relative_path, path, request_type):
-    registry = get_current_registry()
-
+def register_skin_object(registry, relative_path, path, request_type):
     ext = os.path.splitext(path)[1]
     factory = registry.queryUtility(ISkinObjectFactory, name=ext) or \
               SkinObject
@@ -58,10 +51,7 @@ def register_skin_object(relative_path, path, request_type):
 
     if inst is not None:
         inst.path = path
-        if request_type is not None:
-            inst(request_type).refresh()
-        else:
-            inst.refresh()
+        inst.refresh()
     else:
         inst = factory(relative_path, path)
 
@@ -76,21 +66,19 @@ def register_skin_object(relative_path, path, request_type):
             registry.registerUtility(inst, ISkinObject, name)
 
 
-def register_skin_view(relative_path, path, kwargs):
-    registry = get_current_registry()
-
+def register_skin_view(registry, relative_path, path, kwargs):
     for inst in registry.getAllUtilitiesRegisteredFor(ISkinObject):
         if inst.path == path:
             break
-    else:
+    else:  # pragma: nocover
         raise RuntimeError("Skin object not found: %s." % relative_path)
 
     name = type(inst).component_name(relative_path).replace('/', '_')
 
-    context = ConfigurationMachine()
-    register_bfg_view(
-        context, name=name, view=inst, **kwargs)
-    context.execute_actions()
+    config = Configurator(registry=registry)
+    config.add_view(view=inst, name=name, **kwargs)
+    config.commit()
+
 
 class Discoverer(threading.Thread):
     run = None
@@ -100,7 +88,7 @@ class Discoverer(threading.Thread):
         self.paths = {}
 
     def watch(self, path, handler):
-        if self.run is None:
+        if self.run is None:  # pragma: nocover
             raise ImportError(
                 "Must have either ``MacFSEvents`` (on Mac OS X) or "
                 "``pyinotify`` (Linux) to enable runtime discovery.")
@@ -109,20 +97,22 @@ class Discoverer(threading.Thread):
 
         # thread starts itself
         if not self.isAlive():
+            self.daemon = True
             self.start()
 
     try:
         import fsevents
-    except ImportError:
+    except ImportError:  # pragma: nocover
         pass
     else:
-        def run(self):
+        def run(self):  # pragma: nocover
             logger.info("Starting FS event listener.")
 
             def callback(subpath, subdir):
                 for path, handler in self.paths.items():
                     if subpath.startswith(path):
-                        return handler.configure()
+                        config = handler.configure()
+                        config.commit()
 
             stream = self.fsevents.Stream(callback, *self.paths)
             observer = self.fsevents.Observer()
@@ -134,12 +124,12 @@ class Discoverer(threading.Thread):
 
     try:
         import pyinotify
-    except ImportError:
+    except ImportError:  # pragma: nocover
         pass
     else:
         wm = pyinotify.WatchManager()
 
-        def run(self):
+        def run(self):  # pragma: nocover
             self.watches = []
             mask = self.pyinotify.IN_CREATE
 
@@ -152,7 +142,8 @@ class Discoverer(threading.Thread):
                     subpath = event.path
                     for path, handler in self.paths.items():
                         if subpath.startswith(path):
-                            return handler.configure()
+                            config = handler.configure()
+                            config.commit()
 
             handler = Event()
             notifier = self.pyinotify.Notifier(self.wm, handler)
@@ -163,25 +154,25 @@ class Discoverer(threading.Thread):
             notifier.join()
 
 
-
 class skins(object):
     threads = weakref.WeakValueDictionary()
 
     def __init__(self, context, path=None, discovery=False, request_type=None):
-        self.registry = get_current_registry()
         self.context = context
         self.path = os.path.realpath(path).encode('utf-8')
         self.views = []
-        self.request_type = Configurator(self.registry, package=package).\
+        self.request_type = Configurator(context.registry, package=package).\
                             maybe_dotted(request_type)
 
         if discovery:
-            thread = self.threads.get(id(self.registry))
+            thread = self.threads.get(id(context.registry))
             if thread is None:
-                thread = self.threads[id(self.registry)] = Discoverer()
+                thread = self.threads[id(context.registry)] = Discoverer()
             thread.watch(self.path, self)
 
     def __call__(self):
+        registry = self.context.registry
+
         for skin in iter(self):
             yield skin
 
@@ -207,28 +198,25 @@ class skins(object):
                         kwargs.get('accept'), kwargs.get('header'),
                         kwargs.get('path_info')), \
                         register_skin_view, \
-                        (relative_path, path, kwargs)
+                        (registry, relative_path, path, kwargs)
 
                 yield view
 
     def __iter__(self):
+        registry = self.context.registry
+
         for relative_path, path in walk(self.path):
             yield (relative_path, path, ISkinObject), \
                   register_skin_object, \
-                  (relative_path, path, self.request_type)
+                  (self.context.registry, relative_path, path, self.request_type)
 
     def configure(self):
-        gsm = component.getGlobalSiteManager
-        component.getGlobalSiteManager = get_current_registry
-        manager.push({'registry': self.registry})
-        try:
-            context = ConfigurationMachine()
-            for action in self():
-                context.action(*action)
-            context.execute_actions()
-        finally:
-            component.getGlobalSiteManager = gsm
-            manager.pop()
+        config = Configurator.with_context(self.context)
+
+        for action in self():
+            config.action(*action)
+
+        return config
 
     def view(self, context, index=None, **kwargs):
         assert 'name' not in kwargs

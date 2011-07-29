@@ -15,7 +15,7 @@ scenarios. The example test setup contains the following files::
 .. -> output
 
   >>> import os
-  >>> from repoze.bfg.skins import tests
+  >>> from pyramid_skins import tests
   >>> for filename in output.split('\n'):
   ...     if filename.lstrip().startswith('.'):
   ...         assert os.lstat(
@@ -31,10 +31,12 @@ logo.
 
 We begin by registering the directory. This makes the files listed
 above available as skin components. The ZCML-directive ``skins`` makes
-registration easy::
+registration easy:
 
-  <configure xmlns="http://namespaces.repoze.org/bfg">
-    <include package="repoze.bfg.skins" />
+.. code-block:: xml
+
+  <configure xmlns="http://pylonshq.com/pyramid">
+    <include package="pyramid_skins" />
     <skins path="skins" />
   </configure>
 
@@ -42,15 +44,14 @@ registration easy::
 
 .. invisible-code-block: python
 
-  from zope.configuration.xmlconfig import string
-  _ = string("""
-     <configure xmlns="http://namespaces.repoze.org/bfg" package="repoze.bfg.skins.tests">
-     <include package="repoze.bfg.includes" file="meta.zcml" />
+  xmlconfig("""
+     <configure xmlns="http://pylonshq.com/pyramid" package="pyramid_skins.tests">
+     <include package="pyramid_zcml" file="meta.zcml" />
        %(configuration)s
      </configure>""".strip() % locals())
 
   from zope.component import getUtility
-  from repoze.bfg.skins.interfaces import ISkinObject
+  from pyramid_skins.interfaces import ISkinObject
   getUtility(ISkinObject, name="index")
 
 The ``path`` parameter indicates a relative path which defines the
@@ -64,7 +65,7 @@ At this point the skin objects are available as utility
 components. This is the low-level interface::
 
   from zope.component import getUtility
-  from repoze.bfg.skins.interfaces import ISkinObject
+  from pyramid_skins.interfaces import ISkinObject
   index = getUtility(ISkinObject, name="index")
 
 .. -> code
@@ -88,7 +89,7 @@ Objects
 
 The ``SkinObject`` class itself wraps the low-level utility lookup::
 
-  from repoze.bfg.skins import SkinObject
+  from pyramid_skins import SkinObject
   FrontPage = SkinObject("index")
 
 .. -> code
@@ -121,7 +122,7 @@ tag of the HTML document::
 .. -> output
 
   >>> exec(code)
-  >>> response.body.replace('\n\n', '\n') == output.strip('\n')
+  >>> response.body.replace('\n\n', '\n') == output
   True
   >>> response.content_type == 'text/html'
   True
@@ -130,7 +131,7 @@ tag of the HTML document::
 
 The exact same approach works for the logo object::
 
-  from repoze.bfg.skins import SkinObject
+  from pyramid_skins import SkinObject
   logo = SkinObject("images/logo.png")
 
 .. -> code
@@ -163,46 +164,47 @@ Request-specific skins
 Instead of global utility skin components, we can provide a request
 type:
 
-  <configure xmlns="http://namespaces.repoze.org/bfg">
-    <include package="repoze.bfg.skins" />
-    <skins path="skins" request_type="repoze.bfg.interfaces.IRequest" />
+.. code-block:: xml
+
+  <configure xmlns="http://pylonshq.com/pyramid">
+    <include package="pyramid_skins" />
+    <skins path="skins" request_type="pyramid.interfaces.IRequest" />
   </configure>
 
 .. -> configuration
 
 .. invisible-code-block: python
 
-  from zope.configuration.xmlconfig import string
-  _ = string("""
-     <configure xmlns="http://namespaces.repoze.org/bfg" package="repoze.bfg.skins.tests">
-     <include package="repoze.bfg.includes" file="meta.zcml" />
+  _ = xmlconfig("""
+     <configure xmlns="http://pylonshq.com/pyramid" package="pyramid_skins.tests">
+     <include package="pyramid_zcml" file="meta.zcml" />
        %(configuration)s
      </configure>""".strip() % locals())
 
 The skin component is now registered as a named adapter on the
 request:
 
-  >>> from repoze.bfg.testing import DummyRequest
+  >>> from pyramid.testing import DummyRequest
   >>> request = DummyRequest()
 
 We use the ``getAdapter`` call:
 
   >>> from zope.component import getAdapter
   >>> getAdapter(request, ISkinObject, name="index")
-  <repoze.bfg.skins.models.SkinTemplate name="index" path=".../skins/index.pt" at ...>
+  <pyramid_skins.models.SkinTemplate name="index" path=".../skins/index.pt" at ...>
 
 Views
 #####
 
 The call method signature for skin templates is ``(context,
-request)``. This is the same as BFG views. That is, we can use skin
+request)``. This is the same as views. That is, we can use skin
 template objects directly as view callables::
 
   <view name="frontpage1" view=".FrontPage" />
 
 .. -> config1
 
-In BFG we can also define a view using a class which provides
+In Pyramid we can also define a view using a class which provides
 ``__init__`` and ``__call__``. The call method must return a
 response. With skin objects, we can express it this way::
 
@@ -217,10 +219,19 @@ response. With skin objects, we can express it this way::
 
   >>> exec(code)
 
-When the ``__call__`` attribute is accessed, the view instance
-dictionary (which in this case has the symbols ``context`` and
-``request``) is bound to the template. The dictionary is then passed
-as keyword arguments when the template is called::
+When the ``__call__`` attribute is accessed (as a descriptor), a view
+callable is returned, bound to the view's instance dictionary (which
+in this case has the symbols ``context`` and ``request``)::
+
+  <div id="view-${type(view).__name__.lower()}">
+    <a href="${request.route_url('search')">Search</a>
+
+    <p class="content">
+      ${context}
+    </p>
+  </div>
+
+Note that methods are not bound.
 
   <view name="frontpage2" view=".FrontPageView" />
 
@@ -228,15 +239,14 @@ as keyword arguments when the template is called::
 
 .. we run these two view configurations.
 
-  >>> from repoze.bfg.skins import tests
+  >>> from pyramid_skins import tests
   >>> tests.FrontPage = FrontPage
   >>> tests.FrontPageView = FrontPageView
-  >>> from zope.configuration.xmlconfig import string
-  >>> _ = string("""
-  ... <configure xmlns="http://namespaces.repoze.org/bfg"
-  ...            package="repoze.bfg.skins.tests">
-  ...   <include package="repoze.bfg.includes" file="meta.zcml" />
-  ...   <include package="repoze.bfg.skins" />
+  >>> _ = xmlconfig("""
+  ... <configure xmlns="http://pylonshq.com/pyramid"
+  ...            package="pyramid_skins.tests">
+  ...   <include package="pyramid_zcml" file="meta.zcml" />
+  ...   <include package="pyramid_skins" />
   ...   %(config1)s
   ...   %(config2)s
   ... </configure>""".strip() % locals())
@@ -253,11 +263,11 @@ passed ``'Hello world!'`` as the view context::
 
 .. -> output
 
-  >>> from repoze.bfg.view import render_view
-  >>> from repoze.bfg.testing import DummyRequest
+  >>> from pyramid.view import render_view
+  >>> from pyramid.testing import DummyRequest
   >>> frontpage1 = render_view('Hello world!', DummyRequest(), name="frontpage1")
   >>> frontpage2 = render_view('Hello world!', DummyRequest(), name="frontpage2")
-  >>> frontpage1.replace('\n\n', '\n') == frontpage2.replace('\n\n', '\n') == output.strip('\n')
+  >>> frontpage1.replace('\n\n', '\n') == frontpage2.replace('\n\n', '\n') == output
   True
 
 Discovery
@@ -267,15 +277,19 @@ In some scenarios, it's useful to be able to discover skin objects at
 run-time. An example is when you use skins to publish editorial
 content which is added to the file system.
 
-The ``discovery`` parameter takes a boolean argument, e.g. ``True``::
+The ``discovery`` parameter takes a boolean argument, e.g. ``True``:
 
-  <configure xmlns="http://namespaces.repoze.org/bfg">
+.. code-block:: xml
+
+  <configure xmlns="http://pylonshq.com/pyramid">
     <skins path="skins" discovery="True" />
   </configure>
 
 .. -> configuration
 
-Let's add a new skin template with the source::
+Let's add a new skin template with the source:
+
+.. code-block:: xml
 
   <div>Hello world!</div>
 
@@ -302,12 +316,11 @@ Let's add a new skin template with the source::
   g = None
   try:
       # register skin directory
-      from zope.configuration.xmlconfig import string
-      _ = string("""
-         <configure xmlns="http://namespaces.repoze.org/bfg"
+      _ = xmlconfig("""
+         <configure xmlns="http://pylonshq.com/pyramid"
                     package="%(module)s">
-         <include package="repoze.bfg.includes" file="meta.zcml" />
-         <include package="repoze.bfg.skins" />
+         <include package="pyramid_zcml" file="meta.zcml" />
+         <include package="pyramid_skins" />
            %(configuration)s
          </configure>""".strip() % locals())
 
@@ -329,7 +342,7 @@ Let's add a new skin template with the source::
 
           # verify existence
           from zope.component import queryUtility
-          from repoze.bfg.skins.interfaces import ISkinObject
+          from pyramid_skins.interfaces import ISkinObject
           template = queryUtility(ISkinObject, name=name)
           assert template is not None, "Template does not exist: " + name
           if template:
@@ -342,7 +355,7 @@ Let's add a new skin template with the source::
 
   >>> print output
   200 OK
-  Content-Length: 23
+  Content-Length: 24
   Content-Type: text/html; charset=UTF-8
   <BLANKLINE>
   <div>Hello world!</div>
@@ -355,10 +368,20 @@ Compatibility
 
 Imperative configuration
 ========================
-If you prefer imperative configuration over declarative you can use the
-``register_path`` method to configure skins::
 
-  from repoze.bfg.skins.configuration import register_path
-  register_path("templates", discovery=True)
+If you prefer imperative configuration over declarative you can use
+the ``pyramid_skins.configuration.register_path`` method for
+configuration:
 
+.. automodule:: pyramid_skins.configuration
+
+   .. autofunction:: register_path
+
+Example::
+
+  from pyramid.config import Configurator
+  config = Configurator()
+
+  from pyramid_skins.configuration import register_path
+  register_path(config, path)
 

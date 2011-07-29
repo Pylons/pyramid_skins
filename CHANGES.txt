@@ -1,9 +1,10 @@
 Changelog
 =========
 
-0.23 (unreleased)
------------------
+1.0 (unreleased / preview)
+--------------------------
 
+- Ported to Pyramid framework.
 
 0.22 (2011-04-07)
 -----------------

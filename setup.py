@@ -26,12 +26,13 @@ long_description = long_description.decode('utf-8')
 
 install_requires =[
     'setuptools',
-    'Chameleon <= 1.9999',
+    'Chameleon >= 2.2',
     'zope.interface',
     'zope.component',
     'zope.configuration',
     'zope.testing',
-    'repoze.bfg',
+    'pyramid',
+    'pyramid_zcml',
     ]
 
 tests_require = []
@@ -40,7 +41,7 @@ if sys.platform == "darwin":
     tests_require.append("MacFSEvents")
 
 if sys.platform.startswith("linux"):
-    tests_require.append("pyinotify==0.8.8")
+    tests_require.append("pyinotify")
 
 tests_require = install_requires + [
     'manuel',
@@ -48,11 +49,11 @@ tests_require = install_requires + [
     'zope.component>3.9.2',
     ] + tests_require
 
-setup(name='repoze.bfg.skins',
-      version = '0.23dev',
-      description='Skin support for BFG.',
+setup(name='pyramid_skins',
+      version = '1.0-preview',
+      description='Templating framework for Pyramid.',
       long_description=long_description,
-      keywords = "zope3 repoze bfg",
+      keywords = "pyramid templates",
       classifiers = [
           'Development Status :: 4 - Beta',
           'Environment :: Web Environment',
@@ -66,7 +67,7 @@ setup(name='repoze.bfg.skins',
       license='BSD',
       packages=find_packages('src'),
       package_dir = {'': 'src'},
-      namespace_packages=['repoze', 'repoze.bfg'],
+      namespace_packages=[],
       include_package_data = True,
       zip_safe = False,
       install_requires=install_requires,
@@ -74,5 +75,5 @@ setup(name='repoze.bfg.skins',
       extras_require = {
         'tests': [dep.split('==')[0] for dep in tests_require],
           },
-      test_suite="repoze.bfg.skins.tests",
+      test_suite="pyramid_skins.tests",
       )

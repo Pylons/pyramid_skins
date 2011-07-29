@@ -2,7 +2,7 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    = src/repoze/bfg/skins/docs
+SPHINXOPTS    = src/pyramid_skins/docs
 SPHINXBUILD   = /usr/bin/env sphinx-build
 PAPER         =
 BUILDDIR      = _build

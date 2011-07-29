@@ -1,4 +1,4 @@
-from repoze.bfg.traversal import ModelGraphTraverser
+from pyramid.traversal import ModelGraphTraverser
 
 class RoutesTraverserFactory(ModelGraphTraverser):
     def __call__(self, environ):

@@ -1,8 +1,8 @@
 <configure
-    xmlns="http://namespaces.repoze.org/bfg"
+    xmlns="http://pylonshq.com/pyramid"
     xmlns:meta="http://namespaces.zope.org/meta">
 
-  <meta:directives namespace="http://namespaces.repoze.org/bfg">
+  <meta:directives namespace="http://pylonshq.com/pyramid">
 
     <meta:complexDirective
        name="skins"
