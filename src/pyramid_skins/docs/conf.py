@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Pyramid skins'
-copyright = u'2009-2011 Malthe Borch and the Repoze Community'
+copyright = u'2009-2011 Malthe Borch and the Pylons Community'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
