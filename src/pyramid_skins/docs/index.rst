@@ -54,10 +54,9 @@ configurator::
   from pyramid.config import Configurator
   config = Configurator()
 
+  import pyramid_skins
   config.include(pyramid_skins)
-
-  from pyramid_skins.configuration import register_path
-  register_path(config, "pyramid_skins:tests/skins")
+  config.register_path("pyramid_skins:tests/skins")
 
 If you're instead using the `pyramid_zcml
 <http://pypi.python.org/pypi/pyramid_zcml/>`_ extension to configure
