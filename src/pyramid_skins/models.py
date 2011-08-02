@@ -4,8 +4,6 @@ import functools
 
 from zope.interface import implements
 from zope.interface import classProvides
-from zope.component import getUtility
-from zope.component import queryAdapter
 from zope.component import ComponentLookupError
 
 from chameleon.zpt.template import PageTemplateFile
@@ -13,6 +11,7 @@ from chameleon.tales import ProxyExpr
 
 from pyramid.response import Response
 from pyramid.threadlocal import get_current_request
+from pyramid.threadlocal import get_current_registry
 from pyramid.url import route_url
 
 from pyramid_skins.interfaces import ISkinObject
@@ -20,8 +19,9 @@ from pyramid_skins.interfaces import ISkinObjectFactory
 
 
 def _lookup_component(request, name):
-    return queryAdapter(request, ISkinObject, name=name) or \
-           getUtility(ISkinObject, name=name)
+    registry = get_current_registry()
+    return registry.queryAdapter(request, ISkinObject, name=name) or \
+           registry.getUtility(ISkinObject, name=name)
 
 
 def get_route_url_from_threadlocal_request(route_name):
@@ -89,8 +89,9 @@ class SkinObject(object):
 
     def __get__(self, view=None, cls=None):
         request = get_current_request()
-        inst = queryAdapter(request, ISkinObject, name=self.name) or \
-               getUtility(ISkinObject, name=self.name)
+        registry = get_current_registry()
+        inst = registry.queryAdapter(request, ISkinObject, name=self.name) or \
+               registry.getUtility(ISkinObject, name=self.name)
 
         if view is None:
             return inst

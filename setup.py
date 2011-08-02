@@ -50,7 +50,7 @@ tests_require = install_requires + [
     ] + tests_require
 
 setup(name='pyramid_skins',
-      version = '1.0-preview',
+      version = '1.0-rc1',
       description='Templating framework for Pyramid.',
       long_description=long_description,
       keywords = "pyramid templates",

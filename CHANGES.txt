@@ -1,6 +1,11 @@
 Changelog
 =========
 
+In next release ...
+
+- Fixed issue where an incorrect component registry was used to look
+  up skin components.
+
 1.0 (unreleased / preview)
 --------------------------
 
