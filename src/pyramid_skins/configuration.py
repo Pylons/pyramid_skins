@@ -3,9 +3,7 @@ import pkg_resources
 from pyramid_skins.zcml import skins
 from pyramid.asset import resolve_asset_spec
 from pyramid.path import caller_path
-from pyramid.config import PyramidConfigurationMachine
-from pyramid.config import Configurator
-from pyramid.threadlocal import get_current_registry
+from pyramid.config import ActionState
 
 
 def register_path(config, spec, discovery=False, indexes=[], request_type=None):
@@ -27,7 +25,7 @@ def register_path(config, spec, discovery=False, indexes=[], request_type=None):
     else:
         path = caller_path(path)
 
-    context = PyramidConfigurationMachine()
+    context = ActionState()
     context.registry = config.registry
 
     directive = skins(context, path, discovery, request_type)
