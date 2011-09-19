@@ -13,7 +13,7 @@ from pyramid_zcml import IViewDirective
 from pyramid_skins.models import SkinObject
 from pyramid_skins.interfaces import ISkinObject
 from pyramid_skins.interfaces import ISkinObjectFactory
-from pyramid.configuration import Configurator
+from pyramid.config import Configurator
 
 logger = logging.getLogger("pyramid_skins")
 
@@ -75,7 +75,7 @@ def register_skin_view(registry, relative_path, path, kwargs):
 
     name = type(inst).component_name(relative_path).replace('/', '_')
 
-    config = Configurator(registry=registry)
+    config = Configurator(registry=registry, autocommit=True)
     config.add_view(view=inst, name=name, **kwargs)
     config.commit()
 
@@ -161,7 +161,7 @@ class skins(object):
         self.context = context
         self.path = os.path.realpath(path).encode('utf-8')
         self.views = []
-        self.request_type = Configurator(context.registry, package=package).\
+        self.request_type = Configurator(context.registry, package=package, autocommit=True).\
                             maybe_dotted(request_type)
 
         if discovery:
