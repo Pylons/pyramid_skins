@@ -1,15 +1,13 @@
 Changelog
 =========
 
-In next release ...
+1.0 (unreleased / preview)
+--------------------------
 
 - Fixed issue where an incorrect component registry was used to look
   up skin components.
 
 - fix Pyramid 1.2 compatibility [amleczko]
-
-1.0 (unreleased / preview)
---------------------------
 
 - Ported to Pyramid framework.
 
