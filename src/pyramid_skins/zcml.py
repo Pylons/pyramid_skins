@@ -75,7 +75,7 @@ def register_skin_view(registry, relative_path, path, kwargs):
 
     name = type(inst).component_name(relative_path).replace('/', '_')
 
-    config = Configurator(registry=registry, autocommit=True)
+    config = Configurator(registry=registry, autocommit=False)
     config.add_view(view=inst, name=name, **kwargs)
     config.commit()
 
@@ -161,7 +161,7 @@ class skins(object):
         self.context = context
         self.path = os.path.realpath(path).encode('utf-8')
         self.views = []
-        self.request_type = Configurator(context.registry, package=package, autocommit=True).\
+        self.request_type = Configurator(context.registry, package=package, autocommit=False).\
                             maybe_dotted(request_type)
 
         if discovery:
