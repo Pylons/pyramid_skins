@@ -16,7 +16,12 @@ def renderer_factory(info):
         except (TypeError, ValueError):  # pragma: nocover
             raise ValueError('Renderer was passed non-dictionary as value.')
 
-        name = system['view'].__name__
+        try:
+            name = system['view'].__name__
+        except AttributeError:
+            # handles the case of @view_config applied to instance methods
+            name = system['request'].view_name
+
         request = system['request']
 
         instance = registry.queryAdapter(request, ISkinObject, name=name) or \
