@@ -26,7 +26,7 @@ long_description = long_description.decode('utf-8')
 
 install_requires =[
     'setuptools',
-    'Chameleon >= 2.2',
+    'Chameleon >= 2.7',
     'zope.interface',
     'zope.component',
     'zope.configuration',
