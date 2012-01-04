@@ -44,22 +44,23 @@ class DoctestCase(unittest.TestCase):
         request = pyramid.testing.DummyRequest()
         config = pyramid.testing.setUp(request=request, hook_zca=True)
 
-        import pyramid.config
-        context = pyramid.config.PyramidConfigurationMachine()
-        context.registry = config.registry
-
-        from zope.configuration.xmlconfig import string
-        from zope.configuration.xmlconfig import registerCommonDirectives
-        registerCommonDirectives(context)
-        config = pyramid.config.Configurator.with_context(context)
-        config.commit()
-
         import pyramid_zcml
         pyramid_zcml.load_zcml(config, 'pyramid_zcml:meta.zcml')
 
-        def xmlconfig(s, context=context):
-            context = string(s, context=context, execute=False)
-            config = pyramid.config.Configurator.with_context(context)
+        def xmlconfig(s, config=config):
+            from zope.configuration.config import ConfigurationMachine
+            from zope.configuration.xmlconfig import registerCommonDirectives
+            from zope.configuration.xmlconfig import string
+
+            context = ConfigurationMachine()
+            context.autocommit = True
+            context.registry = config.registry
+            context.route_prefix = None
+            context.actions = config.action_state.actions
+
+            registerCommonDirectives(context)
+
+            string(s, context=context, execute=False)
             config.commit()
 
         test.globs['xmlconfig'] = xmlconfig

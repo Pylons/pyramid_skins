@@ -75,9 +75,8 @@ def register_skin_view(registry, relative_path, path, kwargs):
 
     name = type(inst).component_name(relative_path).replace('/', '_')
 
-    config = Configurator(registry=registry, autocommit=False)
+    config = Configurator(registry=registry, autocommit=True)
     config.add_view(view=inst, name=name, **kwargs)
-    config.commit()
 
 
 class Discoverer(threading.Thread):

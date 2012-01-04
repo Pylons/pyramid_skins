@@ -7,7 +7,8 @@ Changelog
 - Fixed issue where an incorrect component registry was used to look
   up skin components.
 
-- fix Pyramid 1.2 compatibility [amleczko]
+- Fix Pyramid 1.2/1.3 compatibility.
+  [amleczko]
 
 - Ported to Pyramid framework.
 

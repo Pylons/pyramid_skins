@@ -8,6 +8,7 @@ from zope.component import ComponentLookupError
 
 from chameleon.zpt.template import PageTemplateFile
 from chameleon.tales import ProxyExpr
+from chameleon.tales import TalesExpr
 
 from pyramid.response import Response
 from pyramid.threadlocal import get_current_request
@@ -25,12 +26,14 @@ def _lookup_component(request, name):
 
 
 def get_route_url_from_threadlocal_request(route_name):
+    name = route_name.strip()
     request = get_current_request()
-    return route_url(route_name, request)
+    return route_url(name, request)
 
 
 def lookup_skin(template, name):
     request = get_current_request()
+    name = name.strip()
 
     if name.startswith('/'):
         return _lookup_component(request, name[1:])
@@ -47,6 +50,18 @@ def lookup_skin(template, name):
         path = path[:path.rindex('/')]
 
     return _lookup_component(request, name)
+
+
+class TalesProxyExpr(TalesExpr):
+    def __init__(self, name, *args):
+        super(TalesProxyExpr, self).__init__(*args)
+        self.name = name
+
+    def translate(self, expression, target):
+        """Return statements that assign a value to ``target``."""
+
+        compiler = ProxyExpr(self.name, expression)
+        return compiler(target, None)
 
 
 class SkinObject(object):
@@ -119,7 +134,7 @@ class SkinTemplate(SkinObject, PageTemplateFile):
     encoding = 'UTF-8'
 
     expression_types = PageTemplateFile.expression_types.copy()
-    expression_types['skin'] = functools.partial(ProxyExpr, '__skin')
+    expression_types['skin'] = functools.partial(TalesProxyExpr, '__skin')
     expression_types['route'] = functools.partial(ProxyExpr, '__route')
 
     @property
