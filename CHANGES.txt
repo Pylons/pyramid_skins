@@ -1,6 +1,11 @@
 Changelog
 =========
 
+In next release ...
+
+- Chameleon's ``ProxyExpr`` is now a TALES-expression, and supports
+  the pipe operator. We'll use it if it's available.
+
 1.0 (2012-01-04)
 ----------------
 

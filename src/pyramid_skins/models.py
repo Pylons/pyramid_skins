@@ -52,16 +52,20 @@ def lookup_skin(template, name):
     return _lookup_component(request, name)
 
 
-class TalesProxyExpr(TalesExpr):
-    def __init__(self, name, *args):
-        super(TalesProxyExpr, self).__init__(*args)
-        self.name = name
+# BBB: Chameleon < 2.10.
+if TalesExpr not in ProxyExpr.__bases__:
+    _proxy_expr = ProxyExpr
 
-    def translate(self, expression, target):
-        """Return statements that assign a value to ``target``."""
+    class ProxyExpr(TalesExpr):
+        def __init__(self, name, *args):
+            super(ProxyExpr, self).__init__(*args)
+            self.name = name
 
-        compiler = ProxyExpr(self.name, expression)
-        return compiler(target, None)
+        def translate(self, expression, target):
+            """Return statements that assign a value to ``target``."""
+
+            compiler = _proxy_expr(self.name, expression)
+            return compiler(target, None)
 
 
 class SkinObject(object):
@@ -134,7 +138,7 @@ class SkinTemplate(SkinObject, PageTemplateFile):
     encoding = 'UTF-8'
 
     expression_types = PageTemplateFile.expression_types.copy()
-    expression_types['skin'] = functools.partial(TalesProxyExpr, '__skin')
+    expression_types['skin'] = functools.partial(ProxyExpr, '__skin')
     expression_types['route'] = functools.partial(ProxyExpr, '__route')
 
     @property

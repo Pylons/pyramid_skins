@@ -40,7 +40,7 @@ skin object by name::
 
 The pipe operator lets us provide one or more fallback options::
 
-  tal:define="inst skin: /images/logo.gif | skin: /images/logo.png"
+  tal:define="inst skin: /images/logo.gif | /images/logo.png"
 
 .. -> define_logo
 
