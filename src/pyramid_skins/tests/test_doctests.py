@@ -39,10 +39,11 @@ class DoctestCase(unittest.TestCase):
     @staticmethod
     def setUp(test):
         import pyramid.testing
-        pyramid.testing.registerRoute('/willneverbeused', 'willneverbeused')
 
         request = pyramid.testing.DummyRequest()
         config = pyramid.testing.setUp(request=request, hook_zca=True)
+
+        config.add_route('/unused', 'unused')
 
         import pyramid_zcml
         pyramid_zcml.load_zcml(config, 'pyramid_zcml:meta.zcml')
@@ -53,16 +54,19 @@ class DoctestCase(unittest.TestCase):
             from zope.configuration.xmlconfig import string
 
             context = ConfigurationMachine()
+            context.config_class = type(config)
             context.autocommit = True
             context.registry = config.registry
             context.route_prefix = None
             context.actions = config.action_state.actions
+            context.introspection = False
 
             registerCommonDirectives(context)
 
             string(s, context=context, execute=False)
             config.commit()
 
+        test.globs['add_route'] = config.add_route
         test.globs['xmlconfig'] = xmlconfig
         test.globs['registry'] = config.registry
         test.globs['request'] = request

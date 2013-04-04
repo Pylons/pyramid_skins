@@ -149,11 +149,11 @@ framework function::
 
 .. -> source
 
-In the :ref:`framework integration <framework-integration>` section we learn how you can set
-up a route to serve up skin objects as static resources or even views.
+In the :ref:`framework integration <framework-integration>` section we
+learn how you can set up a route to serve up skin objects as static
+resources or even views.
 
-  >>> from pyramid.testing import registerRoute
-  >>> route = registerRoute("/static", "static")
+  >>> route = add_route("/static", "static")
   >>> print render_template(source)
   <img src="http://example.com/static/images/logo.png" />
 

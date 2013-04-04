@@ -10,6 +10,7 @@ from zope.schema import Bool
 from zope.configuration.fields import Path
 
 from pyramid_zcml import IViewDirective
+from pyramid_zcml import with_context
 from pyramid_skins.models import SkinObject
 from pyramid_skins.interfaces import ISkinObject
 from pyramid_skins.interfaces import ISkinObjectFactory
@@ -204,7 +205,7 @@ class skins(object):
                 yield view
 
     def configure(self):
-        config = Configurator.with_context(self.context)
+        config = with_context(self.context)
 
         for action in self():
             config.action(*action)

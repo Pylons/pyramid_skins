@@ -26,7 +26,7 @@ def _lookup_component(request, name):
 
 
 def get_route_url_from_threadlocal_request(route_name):
-    name = route_name.strip()
+    name = "/" + route_name.strip()
     request = get_current_request()
     return route_url(name, request)
 

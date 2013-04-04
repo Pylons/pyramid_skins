@@ -31,8 +31,8 @@ install_requires =[
     'zope.component',
     'zope.configuration',
     'zope.testing',
-    'pyramid',
-    'pyramid_zcml',
+    'pyramid >= 1.4',
+    'pyramid_zcml >= 0.9.2',
     ]
 
 tests_require = []
@@ -50,7 +50,7 @@ tests_require = install_requires + [
     ] + tests_require
 
 setup(name='pyramid_skins',
-      version = '1.0',
+      version = '1.1-dev',
       description='Templating framework for Pyramid.',
       long_description=long_description,
       keywords = "pyramid templates",

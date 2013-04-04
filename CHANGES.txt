@@ -3,6 +3,9 @@ Changelog
 
 In next release ...
 
+- Fixed Pyramid 1.4 compatibility.
+  [malthe]
+
 - Chameleon's ``ProxyExpr`` is now a TALES-expression, and supports
   the pipe operator. We'll use it if it's available.
 

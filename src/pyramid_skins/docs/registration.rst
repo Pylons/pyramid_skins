@@ -341,7 +341,7 @@ Let's add a new skin template with the source:
          <configure xmlns="http://pylonshq.com/pyramid"
                     package="%(module)s">
          <include package="pyramid_zcml" file="meta.zcml" />
-         <include package="pyramid_skins" />
+         <include package="pyramid_skins" file="meta.zcml" />
            %(configuration)s
          </configure>""".strip() % locals())
 
