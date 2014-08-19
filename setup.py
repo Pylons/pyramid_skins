@@ -24,30 +24,33 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 long_description = "\n\n".join((README, CHANGES))
 long_description = long_description.decode('utf-8')
 
-install_requires =[
+requires = [
     'setuptools',
     'Chameleon >= 2.7',
     'zope.interface',
     'zope.component',
     'zope.configuration',
-    'zope.testing',
     'pyramid >= 1.4',
     'pyramid_zcml >= 0.9.2',
     ]
 
-tests_require = []
+docs_extras = [
+    'Sphinx',
+    'docutils',
+    'repoze.sphinx.autointerface']
+
+testing_extras = [
+    'manuel',
+    'coverage',
+    'nose',
+    'zope.testing>3.8.7',
+    'zope.component>3.9.2']
 
 if sys.platform == "darwin":
-    tests_require.append("MacFSEvents")
+    testing_extras.append("MacFSEvents")
 
 if sys.platform.startswith("linux"):
-    tests_require.append("pyinotify")
-
-tests_require = install_requires + [
-    'manuel',
-    'zope.testing>3.8.7',
-    'zope.component>3.9.2',
-    ] + tests_require
+    testing_extras.append("pyinotify")
 
 setup(name='pyramid_skins',
       version = '1.1',
@@ -75,10 +78,11 @@ setup(name='pyramid_skins',
       namespace_packages=[],
       include_package_data = True,
       zip_safe = False,
-      install_requires=install_requires,
-      tests_require = tests_require,
-      extras_require = {
-        'tests': [dep.split('==')[0] for dep in tests_require],
-          },
+      install_requires=requires,
+      tests_require=testing_extras,
+      extras_require={
+          'testing': testing_extras,
+          'docs': docs_extras,
+          'development': testing_extras + docs_extras},
       test_suite="pyramid_skins.tests",
       )
