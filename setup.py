@@ -29,9 +29,7 @@ requires = [
     'Chameleon >= 2.7',
     'zope.interface',
     'zope.component',
-    'zope.configuration',
     'pyramid >= 1.3',
-    'pyramid_zcml >= 0.9.2',
     ]
 
 docs_extras = [
@@ -43,6 +41,7 @@ testing_extras = [
     'manuel',
     'coverage',
     'nose',
+    'pyramid_zcml >= 0.9.2',
     'zope.testing>3.8.7',
     'zope.component>3.9.2']
 

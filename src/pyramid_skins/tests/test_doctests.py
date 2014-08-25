@@ -47,6 +47,7 @@ class DoctestCase(unittest.TestCase):
 
         import pyramid_zcml
         pyramid_zcml.load_zcml(config, 'pyramid_zcml:meta.zcml')
+        pyramid_zcml.load_zcml(config, 'pyramid_skins:meta.zcml')
 
         def xmlconfig(s, config=config):
             from zope.configuration.config import ConfigurationMachine
