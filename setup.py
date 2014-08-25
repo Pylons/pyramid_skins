@@ -30,7 +30,7 @@ requires = [
     'zope.interface',
     'zope.component',
     'zope.configuration',
-    'pyramid >= 1.4',
+    'pyramid >= 1.3',
     'pyramid_zcml >= 0.9.2',
     ]
 
