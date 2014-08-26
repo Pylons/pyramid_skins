@@ -28,7 +28,6 @@ requires = [
     'setuptools',
     'Chameleon >= 2.7',
     'zope.interface',
-    'zope.component',
     'pyramid >= 1.3',
     ]
 

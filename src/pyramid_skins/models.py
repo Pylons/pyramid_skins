@@ -4,7 +4,10 @@ import functools
 
 from zope.interface import implements
 from zope.interface import classProvides
-from zope.component import ComponentLookupError
+try:
+    from zope.interface.interfaces import ComponentLookupError
+except ImportError:
+    from zope.component import ComponentLookupError
 
 from chameleon.zpt.template import PageTemplateFile
 from chameleon.tales import ProxyExpr
