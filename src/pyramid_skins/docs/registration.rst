@@ -320,22 +320,26 @@ Let's add a new skin template with the source:
 
   import os
   import imp
+  import shutil
   import sys
   import tempfile
-  f = tempfile.NamedTemporaryFile(suffix=".py")
-  try:
-      path, suffix = os.path.splitext(f.name)
-      module = os.path.basename(path)
-      imp.load_module(module, open(f.name), path, (suffix, "r", imp.PY_SOURCE))
-  finally:
-      f.close()
 
-  # make skins directory
-  dir = os.path.join(os.path.dirname(path), "skins")
-  if not os.path.exists(dir):
-      os.mkdir(dir)
-  g = None
+  tmppath = tempfile.mkdtemp()
   try:
+      try:
+        f = open(os.path.join(tmppath, 'foo.py'), 'w')
+        path, suffix = os.path.splitext(f.name)
+        module = os.path.basename(path)
+        imp.load_module(module, open(f.name), path, (suffix, "r", imp.PY_SOURCE))
+      finally:
+        f.close()
+
+      # make skins directory
+      dir = os.path.join(os.path.dirname(path), "skins")
+      if not os.path.exists(dir):
+          os.mkdir(dir)
+      g = None
+
       # register skin directory
       _ = xmlconfig("""
          <configure xmlns="http://pylonshq.com/pyramid"
@@ -372,7 +376,7 @@ Let's add a new skin template with the source:
           g.close()
 
   finally:
-      os.removedirs(dir)
+      shutil.rmtree(tmppath)
 
   >>> print output
   200 OK
