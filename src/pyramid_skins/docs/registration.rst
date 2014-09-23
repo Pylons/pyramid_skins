@@ -327,12 +327,12 @@ Let's add a new skin template with the source:
   tmppath = tempfile.mkdtemp()
   try:
       try:
-        f = open(os.path.join(tmppath, 'foo.py'), 'w')
-        path, suffix = os.path.splitext(f.name)
-        module = os.path.basename(path)
-        imp.load_module(module, open(f.name), path, (suffix, "r", imp.PY_SOURCE))
+          f = open(os.path.join(tmppath, 'foo.py'), 'w')
+          path, suffix = os.path.splitext(f.name)
+          module = os.path.basename(path)
+          imp.load_module(module, open(f.name), path, (suffix, "r", imp.PY_SOURCE))
       finally:
-        f.close()
+          f.close()
 
       # make skins directory
       dir = os.path.join(os.path.dirname(path), "skins")
