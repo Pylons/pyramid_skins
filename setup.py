@@ -51,7 +51,7 @@ if sys.platform.startswith("linux"):
     testing_extras.append("pyinotify")
 
 setup(name='pyramid_skins',
-      version = '1.2dev',
+      version = '1.2',
       description='Templating framework for Pyramid.',
       long_description=long_description,
       keywords = "pyramid templates",
