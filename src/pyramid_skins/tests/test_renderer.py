@@ -41,12 +41,12 @@ class RendererTest(unittest.TestCase):
     def register_skins(self, paths):
         from pyramid.interfaces import IRequest
         from pyramid_skins.configuration import register_path
-        import new
+        from types import ClassType
 
         skins = {}
         for path in paths:
             name = os.path.basename(path)
-            interface = new.classobj(
+            interface = ClassType(
                 'IThemeRequest-%s' % name,
                 (IRequest, ),
                 dict(__doc__=""" marker interface for custom theme """))
