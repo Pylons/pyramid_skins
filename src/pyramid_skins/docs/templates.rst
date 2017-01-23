@@ -47,22 +47,22 @@ The pipe operator lets us provide one or more fallback options::
   >>> def render_template(string, **context):
   ...     from tempfile import NamedTemporaryFile
   ...     f = NamedTemporaryFile(suffix=".pt")
-  ...     f.write(string)
+  ...     f.write(string.encode('utf-8'))
   ...     f.flush()
   ...     from pyramid_skins.zcml import register_skin_object
   ...     register_skin_object(registry, string, f.name, None)
   ...     from pyramid_skins import BindableSkinObject
   ...     inst = BindableSkinObject(string)
   ...     try:
-  ...         return inst(**context).body
+  ...         return inst(**context).body.decode('utf-8')
   ...     finally:
   ...         f.close()
 
   >>> template = "<div %s tal:replace='inst.path' />"
 
-  >>> print render_template(template % define_main_template)
+  >>> print(render_template(template % define_main_template))
   /.../skins/main_template.pt
-  >>> print render_template(template % define_logo)
+  >>> print(render_template(template % define_logo))
   /.../skins/images/logo.png
 
 Whitespace is ignored in any case. Skin lookups are either absolute or
@@ -100,7 +100,7 @@ relative.
   >>> from zope.component import getUtility
   >>> from pyramid_skins.interfaces import ISkinObject
   >>> about = getUtility(ISkinObject, name="about/index")
-  >>> print about(context=u"Hello world!").body
+  >>> print(about(context=u"Hello world!").body.decode('utf-8'))
   <html>
    ... <img src="/about/images/logo.png" /> ...
   </html>
@@ -118,7 +118,7 @@ We can now see that the 'main_template' skin object is resolved from
 the skins path registered for the ``IRequest`` layer
 (``"alt_skins"``):
 
-  >>> print render_template(template % define_main_template)
+  >>> print(render_template(template % define_main_template))
   /.../alt_skins/main_template.pt
 
 This applies also to the ``SkinObject`` constructor:
@@ -126,7 +126,7 @@ This applies also to the ``SkinObject`` constructor:
   >>> from pyramid_skins import BindableSkinObject
   >>> bound = BindableSkinObject("main_template")
   >>> response = bound()
-  >>> print response.body
+  >>> print(response.body.decode('utf-8'))
   <html>
     <title>Alternative</title>
     <body>
@@ -154,7 +154,7 @@ learn how you can set up a route to serve up skin objects as static
 resources or even views.
 
   >>> route = add_route("/static", "static")
-  >>> print render_template(source)
+  >>> print(render_template(source))
   <img src="http://example.com/static/images/logo.png" />
 
 This is a convenient way to compute the URL for static resources. See
@@ -177,7 +177,7 @@ attribute to reach them::
 
 .. -> source
 
-  >>> print render_template(source)
+  >>> print(render_template(source))
   <body>
     Inserted.
   </body>
@@ -193,7 +193,7 @@ the entire template is rendered::
 
 .. -> source
 
-  >>> print render_template(source)
+  >>> print(render_template(source))
   <html>
     <body>
       Inserted.

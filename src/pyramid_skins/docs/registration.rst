@@ -65,6 +65,7 @@ At this point the skin objects are available as utility
 components. This is the low-level interface::
 
   from zope.component import getUtility
+  from pyramid.compat import text_
   from pyramid_skins.interfaces import ISkinObject
   index = getUtility(ISkinObject, name="index")
 
@@ -79,8 +80,8 @@ The component name is available in the ``name`` attribute::
 
 .. -> expr
 
-  >>> eval(expr)
-  'index'
+  >>> print(text_(eval(expr)))
+  index
 
 We now move up one layer and consider the skin components as objects.
 
@@ -120,7 +121,7 @@ tag of the HTML document::
 .. -> output
 
   >>> exec(code)
-  >>> response.body.replace('\n\n', '\n') == output
+  >>> response.body.replace(b'\n\n', b'\n') == output.encode('utf-8')
   True
   >>> response.content_type == 'text/html'
   True
@@ -267,7 +268,7 @@ passed ``'Hello world!'`` as the view context::
   >>> from pyramid.testing import DummyRequest
   >>> frontpage1 = render_view('Hello world!', DummyRequest(), name="frontpage1")
   >>> frontpage2 = render_view('Hello world!', DummyRequest(), name="frontpage2")
-  >>> frontpage1.replace('\n\n', '\n') == frontpage2.replace('\n\n', '\n') == output
+  >>> frontpage1.replace(b'\n\n', b'\n') == frontpage2.replace(b'\n\n', b'\n') == output.encode('utf-8')
   True
 
 Renderer
@@ -358,7 +359,7 @@ Let's add a new skin template with the source:
       # add new file for discovery
       g = tempfile.NamedTemporaryFile(dir=dir, suffix=".pt")
       try:
-          g.write(source)
+          g.write(source.encode('utf-8'))
           g.flush()
 
           name = os.path.splitext(os.path.basename(g.name))[0]
@@ -382,7 +383,7 @@ Let's add a new skin template with the source:
   finally:
       shutil.rmtree(tmppath)
 
-  >>> print output
+  >>> print(output)
   200 OK
   Content-Length: 24
   Content-Type: text/html; charset=UTF-8

@@ -18,10 +18,10 @@ import sys
 from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, 'README.txt')).read()
-CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
+README = open(os.path.join(here, 'README.txt'), 'rb').read()
+CHANGES = open(os.path.join(here, 'CHANGES.txt'), 'rb').read()
 
-long_description = "\n\n".join((README, CHANGES))
+long_description = b"\n\n".join((README, CHANGES))
 long_description = long_description.decode('utf-8')
 
 requires = [

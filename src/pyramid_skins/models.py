@@ -2,8 +2,7 @@ import os
 import mimetypes
 import functools
 
-from zope.interface import implements
-from zope.interface import classProvides
+from zope.interface import implementer, provider
 try:
     from zope.interface.interfaces import ComponentLookupError
 except ImportError:
@@ -13,6 +12,7 @@ from chameleon.zpt.template import PageTemplateFile
 from chameleon.tales import ProxyExpr
 from chameleon.tales import TalesExpr
 
+from pyramid.compat import string_types
 from pyramid.response import Response
 from pyramid.threadlocal import get_current_request
 from pyramid.threadlocal import get_current_registry
@@ -71,9 +71,9 @@ if TalesExpr not in ProxyExpr.__bases__:
             return compiler(target, None)
 
 
+@implementer(ISkinObject)
+@provider(ISkinObjectFactory)
 class SkinObject(object):
-    implements(ISkinObject)
-    classProvides(ISkinObjectFactory)
 
     _bound_kwargs = {}
     content_type = 'application/octet-stream'
@@ -101,7 +101,7 @@ class SkinObject(object):
             return inst(context=context, request=request, **kw)
 
         result = self.render(context=context, request=request, **kw)
-        if isinstance(result, basestring):
+        if isinstance(result, string_types):
             response = Response(body=result)
         else:
             response = Response(app_iter=result)
@@ -127,7 +127,7 @@ class SkinObject(object):
         pass
 
     def render(self, **kw):
-        return file(self.path)
+        return open(self.path, 'rb')
 
 
 class BindableSkinObject(SkinObject):

@@ -9,6 +9,9 @@ Changelog
   instead.
   [fschulze]
 
+- Support Python 3.
+  [fschulze]
+
 
 1.2 (2014-09-23)
 ----------------
