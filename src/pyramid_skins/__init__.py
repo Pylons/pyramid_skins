@@ -1,4 +1,4 @@
-from pyramid_skins.models import SkinObject
+from pyramid_skins.models import BindableSkinObject, SkinObject  # noqa
 from pyramid_skins.routes import RoutesTraverserFactory
 from configuration import register_path
 

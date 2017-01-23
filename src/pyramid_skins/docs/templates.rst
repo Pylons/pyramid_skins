@@ -51,8 +51,8 @@ The pipe operator lets us provide one or more fallback options::
   ...     f.flush()
   ...     from pyramid_skins.zcml import register_skin_object
   ...     register_skin_object(registry, string, f.name, None)
-  ...     from pyramid_skins import SkinObject
-  ...     inst = SkinObject(string)
+  ...     from pyramid_skins import BindableSkinObject
+  ...     inst = BindableSkinObject(string)
   ...     try:
   ...         return inst(**context).body
   ...     finally:
@@ -123,8 +123,8 @@ the skins path registered for the ``IRequest`` layer
 
 This applies also to the ``SkinObject`` constructor:
 
-  >>> from pyramid_skins import SkinObject
-  >>> bound = SkinObject("main_template").__get__()
+  >>> from pyramid_skins import BindableSkinObject
+  >>> bound = BindableSkinObject("main_template")
   >>> response = bound()
   >>> print response.body
   <html>

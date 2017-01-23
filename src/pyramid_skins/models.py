@@ -91,8 +91,13 @@ class SkinObject(object):
                 self.encoding = encoding
 
     def __call__(self, context=None, request=None, **kw):
+        if request is None:
+            request = get_current_request()
         if self.path is None:
-            inst = self.__get__()
+            registry = request.registry
+            inst = registry.queryAdapter(request, ISkinObject, name=self.name)
+            if inst is None:
+                inst = registry.getUtility(ISkinObject, name=self.name)
             return inst(context=context, request=request, **kw)
 
         result = self.render(context=context, request=request, **kw)
@@ -109,17 +114,6 @@ class SkinObject(object):
         response.charset = self.encoding
         return response
 
-    def __get__(self, view=None, cls=None):
-        request = get_current_request()
-        registry = get_current_registry()
-        inst = registry.queryAdapter(request, ISkinObject, name=self.name) or \
-               registry.getUtility(ISkinObject, name=self.name)
-
-        if view is None:
-            return inst
-
-        return functools.partial(inst.__call__, view=view, **view.__dict__)
-
     def __repr__(self):
         return '<%s.%s name="%s" path="%s" at 0x%x>' % (
             type(self).__module__, type(self).__name__,
@@ -134,6 +128,20 @@ class SkinObject(object):
 
     def render(self, **kw):
         return file(self.path)
+
+
+class BindableSkinObject(SkinObject):
+    def __get__(self, view=None, cls=None):
+        request = get_current_request()
+        registry = get_current_registry()
+        inst = registry.queryAdapter(request, ISkinObject, name=self.name)
+        if inst is None:
+            inst = registry.getUtility(ISkinObject, name=self.name)
+
+        if view is None:
+            return inst
+
+        return functools.partial(inst.__call__, view=view, **view.__dict__)
 
 
 class SkinTemplate(SkinObject, PageTemplateFile):

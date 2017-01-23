@@ -95,8 +95,6 @@ The ``SkinObject`` class itself wraps the low-level utility lookup::
 .. -> code
 
   >>> exec(code)
-  >>> FrontPage.__get__() is not None
-  True
 
 This object is a callable which will render the template to a response
 (it could be an image, stylesheet or some other resource type). In the
@@ -208,8 +206,10 @@ In Pyramid we can also define a view using a class which provides
 ``__init__`` and ``__call__``. The call method must return a
 response. With skin objects, we can express it this way::
 
+  from pyramid_skins import BindableSkinObject
+
   class FrontPageView(object):
-      __call__ = SkinObject("index")
+      __call__ = BindableSkinObject("index")
 
       def __init__(self, context, request):
           self.context = context
