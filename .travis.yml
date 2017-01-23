@@ -4,6 +4,9 @@ env:
   - TOX_ENV=py27
   - TOX_ENV=pyramid13
   - TOX_ENV=pyramid14
+  - TOX_ENV=pyramid15
+  - TOX_ENV=pyramid16
+  - TOX_ENV=pyramid17
 install:
   - pip install tox
 script:
