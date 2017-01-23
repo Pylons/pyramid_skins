@@ -318,11 +318,14 @@ Let's add a new skin template with the source:
 
 .. invisible-code-block: python
 
+  from zope.component import queryUtility
+  from pyramid_skins.interfaces import ISkinObject
   import os
   import imp
   import shutil
   import sys
   import tempfile
+  import time
 
   tmppath = tempfile.mkdtemp()
   try:
@@ -350,7 +353,6 @@ Let's add a new skin template with the source:
          </configure>""".strip() % locals())
 
       # Wait a while for the discoverer to start up
-      import time
       time.sleep(0.5)
 
       # add new file for discovery
@@ -359,16 +361,18 @@ Let's add a new skin template with the source:
           g.write(source)
           g.flush()
 
-          # sleep for a short while to discover the new file
-          import time
-          time.sleep(0.5)
-
           name = os.path.splitext(os.path.basename(g.name))[0]
+          count = 10
+          # retry a few times for discovery
+          while count:
+              # sleep for a short while to discover the new file
+              time.sleep(0.5)
 
-          # verify existence
-          from zope.component import queryUtility
-          from pyramid_skins.interfaces import ISkinObject
-          template = queryUtility(ISkinObject, name=name)
+              # verify existence
+              template = queryUtility(ISkinObject, name=name)
+              if template:
+                  break
+              count = count - 1
           assert template is not None, "Template does not exist: " + name
           if template:
               output = template()
