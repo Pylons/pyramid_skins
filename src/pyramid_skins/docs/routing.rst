@@ -35,7 +35,7 @@ To expose the contents of a skin directory as *views*, we can insert a
   >>> from pyramid.testing import DummyRequest
   >>> render_view('Hello world!', DummyRequest(), name="") is None
   True
-  >>> print render_view('Hello world!', DummyRequest(), name="index")
+  >>> print(render_view('Hello world!', DummyRequest(), name="index").decode('utf-8'))
   <html>
     <body>
       Hello world!
@@ -66,7 +66,7 @@ allow registering default index views (e.g. ``index.pt``):
   ...   <include package="pyramid_skins" />
   ...   %(configuration)s
   ... </configure>""".strip() % locals())
-  >>> print render_view('Hello world!', DummyRequest(), name="")
+  >>> print(render_view('Hello world!', DummyRequest(), name="").decode('utf-8'))
   <html>
     <body>
       Hello world!
@@ -110,7 +110,7 @@ factory:
   ...     'REQUEST_METHOD':'GET',
   ...     'PATH_INFO':'/static/images/logo.png',
   ...     }
-  >>> def start_response(*args): print args
+  >>> def start_response(*args): print(args)
   >>> from pyramid.interfaces import IRoutesMapper
   >>> from zope.component import getUtility
   >>> router.root_factory = getUtility(IRoutesMapper)

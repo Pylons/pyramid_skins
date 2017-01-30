@@ -2,8 +2,7 @@ import os
 import mimetypes
 import functools
 
-from zope.interface import implements
-from zope.interface import classProvides
+from zope.interface import implementer, provider
 try:
     from zope.interface.interfaces import ComponentLookupError
 except ImportError:
@@ -13,6 +12,7 @@ from chameleon.zpt.template import PageTemplateFile
 from chameleon.tales import ProxyExpr
 from chameleon.tales import TalesExpr
 
+from pyramid.compat import string_types
 from pyramid.response import Response
 from pyramid.threadlocal import get_current_request
 from pyramid.threadlocal import get_current_registry
@@ -71,9 +71,9 @@ if TalesExpr not in ProxyExpr.__bases__:
             return compiler(target, None)
 
 
+@implementer(ISkinObject)
+@provider(ISkinObjectFactory)
 class SkinObject(object):
-    implements(ISkinObject)
-    classProvides(ISkinObjectFactory)
 
     _bound_kwargs = {}
     content_type = 'application/octet-stream'
@@ -91,12 +91,17 @@ class SkinObject(object):
                 self.encoding = encoding
 
     def __call__(self, context=None, request=None, **kw):
+        if request is None:
+            request = get_current_request()
         if self.path is None:
-            inst = self.__get__()
+            registry = request.registry
+            inst = registry.queryAdapter(request, ISkinObject, name=self.name)
+            if inst is None:
+                inst = registry.getUtility(ISkinObject, name=self.name)
             return inst(context=context, request=request, **kw)
 
         result = self.render(context=context, request=request, **kw)
-        if isinstance(result, basestring):
+        if isinstance(result, string_types):
             response = Response(body=result)
         else:
             response = Response(app_iter=result)
@@ -108,17 +113,6 @@ class SkinObject(object):
         response.content_type = content_type
         response.charset = self.encoding
         return response
-
-    def __get__(self, view=None, cls=None):
-        request = get_current_request()
-        registry = get_current_registry()
-        inst = registry.queryAdapter(request, ISkinObject, name=self.name) or \
-               registry.getUtility(ISkinObject, name=self.name)
-
-        if view is None:
-            return inst
-
-        return functools.partial(inst.__call__, view=view, **view.__dict__)
 
     def __repr__(self):
         return '<%s.%s name="%s" path="%s" at 0x%x>' % (
@@ -133,7 +127,21 @@ class SkinObject(object):
         pass
 
     def render(self, **kw):
-        return file(self.path)
+        return open(self.path, 'rb')
+
+
+class BindableSkinObject(SkinObject):
+    def __get__(self, view=None, cls=None):
+        request = get_current_request()
+        registry = get_current_registry()
+        inst = registry.queryAdapter(request, ISkinObject, name=self.name)
+        if inst is None:
+            inst = registry.getUtility(ISkinObject, name=self.name)
+
+        if view is None:
+            return inst
+
+        return functools.partial(inst.__call__, view=view, **view.__dict__)
 
 
 class SkinTemplate(SkinObject, PageTemplateFile):

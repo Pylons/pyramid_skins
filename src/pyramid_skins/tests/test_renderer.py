@@ -36,20 +36,18 @@ class RendererTest(unittest.TestCase):
         from pyramid.view import render_view
         from pyramid.threadlocal import get_current_request
         result = render_view('Hello world!', get_current_request(), 'index')
-        self.assertTrue('Hello world' in result)
+        self.assertTrue(b'Hello world' in result)
 
     def register_skins(self, paths):
         from pyramid.interfaces import IRequest
         from pyramid_skins.configuration import register_path
-        import new
 
         skins = {}
         for path in paths:
             name = os.path.basename(path)
-            interface = new.classobj(
-                'IThemeRequest-%s' % name,
-                (IRequest, ),
-                dict(__doc__=""" marker interface for custom theme """))
+            class interface(IRequest):
+                __doc__ = """ marker interface for custom theme """
+            interface.__name__ = 'IThemeRequest-%s' % name
             skin = register_path(self.config, path, request_type=interface)
             skins[name] = dict(
                 skin=skin,
@@ -75,7 +73,7 @@ class RendererTest(unittest.TestCase):
 
         alsoProvides(get_current_request(), skins['alt_skins']['interface'])
         result = render_view('Hello world!', get_current_request(), 'index')
-        self.assertTrue('Alternative' in result)
+        self.assertTrue(b'Alternative' in result)
 
     def test_multiple_skins_other(self):
         from pyramid.threadlocal import get_current_request
@@ -96,7 +94,7 @@ class RendererTest(unittest.TestCase):
 
         alsoProvides(get_current_request(), skins['other_skins']['interface'])
         result = render_view('Hello world!', get_current_request(), 'index')
-        self.assertTrue('Other' in result)
+        self.assertTrue(b'Other' in result)
 
     def test_skin_reload(self):
         from pyramid_skins.configuration import register_path
@@ -110,7 +108,7 @@ class RendererTest(unittest.TestCase):
             skins_dir = os.path.join(tmp, 'skins')
             os.mkdir(skins_dir)
             with open(os.path.join(skins_dir, 'index.pt'), 'wb') as f:
-                f.write('<html><title>Alternative</title></html>')
+                f.write(b'<html><title>Alternative</title></html>')
 
             skins = self.register_skins([skins_dir])
 
@@ -126,11 +124,11 @@ class RendererTest(unittest.TestCase):
             from pyramid.threadlocal import get_current_request
             alsoProvides(get_current_request(), skins['skins']['interface'])
             result = render_view('Hello world!', get_current_request(), 'index')
-            self.assertTrue('Alternative' in result)
+            self.assertTrue(b'Alternative' in result)
             with open(os.path.join(skins_dir, 'index.pt'), 'wb') as f:
-                f.write('<html><title>Other</title></html>')
+                f.write(b'<html><title>Other</title></html>')
             skins['skins']['skin'].configure()
             result = render_view('Hello world!', get_current_request(), 'index')
-            self.assertTrue('Other' in result)
+            self.assertTrue(b'Other' in result)
         finally:
             shutil.rmtree(tmp)

@@ -65,6 +65,7 @@ At this point the skin objects are available as utility
 components. This is the low-level interface::
 
   from zope.component import getUtility
+  from pyramid.compat import text_
   from pyramid_skins.interfaces import ISkinObject
   index = getUtility(ISkinObject, name="index")
 
@@ -79,8 +80,8 @@ The component name is available in the ``name`` attribute::
 
 .. -> expr
 
-  >>> eval(expr)
-  'index'
+  >>> print(text_(eval(expr)))
+  index
 
 We now move up one layer and consider the skin components as objects.
 
@@ -95,8 +96,6 @@ The ``SkinObject`` class itself wraps the low-level utility lookup::
 .. -> code
 
   >>> exec(code)
-  >>> FrontPage.__get__() is not None
-  True
 
 This object is a callable which will render the template to a response
 (it could be an image, stylesheet or some other resource type). In the
@@ -122,7 +121,7 @@ tag of the HTML document::
 .. -> output
 
   >>> exec(code)
-  >>> response.body.replace('\n\n', '\n') == output
+  >>> response.body.replace(b'\n\n', b'\n') == output.encode('utf-8')
   True
   >>> response.content_type == 'text/html'
   True
@@ -208,8 +207,10 @@ In Pyramid we can also define a view using a class which provides
 ``__init__`` and ``__call__``. The call method must return a
 response. With skin objects, we can express it this way::
 
+  from pyramid_skins import BindableSkinObject
+
   class FrontPageView(object):
-      __call__ = SkinObject("index")
+      __call__ = BindableSkinObject("index")
 
       def __init__(self, context, request):
           self.context = context
@@ -267,7 +268,7 @@ passed ``'Hello world!'`` as the view context::
   >>> from pyramid.testing import DummyRequest
   >>> frontpage1 = render_view('Hello world!', DummyRequest(), name="frontpage1")
   >>> frontpage2 = render_view('Hello world!', DummyRequest(), name="frontpage2")
-  >>> frontpage1.replace('\n\n', '\n') == frontpage2.replace('\n\n', '\n') == output
+  >>> frontpage1.replace(b'\n\n', b'\n') == frontpage2.replace(b'\n\n', b'\n') == output.encode('utf-8')
   True
 
 Renderer
@@ -318,11 +319,14 @@ Let's add a new skin template with the source:
 
 .. invisible-code-block: python
 
+  from zope.component import queryUtility
+  from pyramid_skins.interfaces import ISkinObject
   import os
   import imp
   import shutil
   import sys
   import tempfile
+  import time
 
   tmppath = tempfile.mkdtemp()
   try:
@@ -350,25 +354,26 @@ Let's add a new skin template with the source:
          </configure>""".strip() % locals())
 
       # Wait a while for the discoverer to start up
-      import time
       time.sleep(0.5)
 
       # add new file for discovery
       g = tempfile.NamedTemporaryFile(dir=dir, suffix=".pt")
       try:
-          g.write(source)
+          g.write(source.encode('utf-8'))
           g.flush()
 
-          # sleep for a short while to discover the new file
-          import time
-          time.sleep(0.5)
-
           name = os.path.splitext(os.path.basename(g.name))[0]
+          count = 10
+          # retry a few times for discovery
+          while count:
+              # sleep for a short while to discover the new file
+              time.sleep(0.5)
 
-          # verify existence
-          from zope.component import queryUtility
-          from pyramid_skins.interfaces import ISkinObject
-          template = queryUtility(ISkinObject, name=name)
+              # verify existence
+              template = queryUtility(ISkinObject, name=name)
+              if template:
+                  break
+              count = count - 1
           assert template is not None, "Template does not exist: " + name
           if template:
               output = template()
@@ -378,7 +383,7 @@ Let's add a new skin template with the source:
   finally:
       shutil.rmtree(tmppath)
 
-  >>> print output
+  >>> print(output)
   200 OK
   Content-Length: 24
   Content-Type: text/html; charset=UTF-8

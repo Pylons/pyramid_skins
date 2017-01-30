@@ -1,8 +1,19 @@
 import logging
+import sys
 import threading
 
 
 logger = logging.getLogger("pyramid_skins")
+
+PY2 = sys.version_info[0] == 2
+
+
+def string(s):
+    if isinstance(s, str):
+        return s
+    if PY2:
+        return s.encode('utf-8')
+    return s.decode('utf-8')
 
 
 class Discoverer(threading.Thread):
@@ -35,11 +46,12 @@ class Discoverer(threading.Thread):
 
             def callback(subpath, subdir):
                 for path, handler in self.paths.items():
+                    path = string(path)
                     if subpath.startswith(path):
                         config = handler.configure()
                         config.commit()
 
-            stream = self.fsevents.Stream(callback, *self.paths)
+            stream = self.fsevents.Stream(callback, *(string(x) for x in self.paths))
             observer = self.fsevents.Observer()
             observer.schedule(stream)
             observer.run()

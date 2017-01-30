@@ -1,6 +1,18 @@
 Changelog
 =========
 
+2.0 (Unreleased)
+----------------
+
+- Fix compatibility with Pyramid 1.6 and newer. If you relied on using the
+  descriptor feature of SkinObject, you now have to use BindableSkinObject
+  instead.
+  [fschulze]
+
+- Support Python 3.
+  [fschulze]
+
+
 1.2 (2014-09-23)
 ----------------
 

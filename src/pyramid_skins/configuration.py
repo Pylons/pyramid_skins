@@ -3,6 +3,7 @@ import pkg_resources
 import weakref
 
 from pyramid.asset import resolve_asset_spec
+from pyramid.compat import bytes_, text_
 from pyramid.path import caller_path
 from pyramid_skins.interfaces import ISkinObject
 from pyramid_skins.interfaces import ISkinObjectFactory
@@ -15,7 +16,7 @@ def walk(path):
         for filename in filenames:
             full_path = os.path.join(dir_path, filename)
             rel_path = full_path[len(path) + 1:]
-            yield rel_path.replace(os.path.sep, '/'), str(full_path)
+            yield rel_path.replace(os.path.sep, '/'), full_path
 
 
 def dirs(path):
@@ -78,7 +79,7 @@ class Skins(object):
     def __init__(self, config, path=None, discovery=False, request_type=None):
         self.config = config
         self.registry = config.registry
-        self.path = os.path.realpath(path).encode('utf-8')
+        self.path = os.path.realpath(text_(path))
         self.views = []
         self.request_type = config.maybe_dotted(request_type)
 
