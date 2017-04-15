@@ -1,6 +1,5 @@
 include CHANGES.txt
 include README.rst
-include README.txt
 include *.ini
 include src/pyramid_skins/*.zcml
 recursive-include src/pyramid_skins/tests *.pt *.png
