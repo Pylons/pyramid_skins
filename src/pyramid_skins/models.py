@@ -12,7 +12,6 @@ from chameleon.zpt.template import PageTemplateFile
 from chameleon.tales import ProxyExpr
 from chameleon.tales import TalesExpr
 
-from pyramid.compat import string_types
 from pyramid.response import Response
 from pyramid.threadlocal import get_current_request
 from pyramid.threadlocal import get_current_registry
@@ -101,7 +100,7 @@ class SkinObject(object):
             return inst(context=context, request=request, **kw)
 
         result = self.render(context=context, request=request, **kw)
-        if isinstance(result, string_types):
+        if isinstance(result, str):
             response = Response(body=result)
         else:
             response = Response(app_iter=result)

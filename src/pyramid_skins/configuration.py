@@ -3,7 +3,6 @@ import pkg_resources
 import weakref
 
 from pyramid.asset import resolve_asset_spec
-from pyramid.compat import bytes_, text_
 from pyramid.path import caller_path
 from pyramid_skins.interfaces import ISkinObject
 from pyramid_skins.interfaces import ISkinObjectFactory
@@ -79,7 +78,7 @@ class Skins(object):
     def __init__(self, config, path=None, discovery=False, request_type=None):
         self.config = config
         self.registry = config.registry
-        self.path = os.path.realpath(text_(path))
+        self.path = os.path.realpath(path)
         self.views = []
         self.request_type = config.maybe_dotted(request_type)
 

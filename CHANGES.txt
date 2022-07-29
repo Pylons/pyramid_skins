@@ -1,9 +1,20 @@
 Changelog
 =========
 
-2.2 (Unreleased)
+3.0 (Unreleased)
 ----------------
 
+- Add support for Python 3.7, 3.8, 3.9 and 3.10.
+  [fschulze]
+
+- Add support for Pyramid 2.0.
+  [fschulze]
+
+- Drop support for Python <= 3.6.
+  [fschulze]
+
+- Drop support for Pyramid < 1.5.
+  [fschulze]
 
 
 2.1 (2017-01-30)

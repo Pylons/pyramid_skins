@@ -32,7 +32,7 @@ class Discoverer(threading.Thread):
         self.paths[path] = handler
 
         # thread starts itself
-        if not self.isAlive():
+        if not self.is_alive():
             self.daemon = True
             self.start()
 

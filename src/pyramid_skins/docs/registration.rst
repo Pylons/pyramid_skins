@@ -65,7 +65,6 @@ At this point the skin objects are available as utility
 components. This is the low-level interface::
 
   from zope.component import getUtility
-  from pyramid.compat import text_
   from pyramid_skins.interfaces import ISkinObject
   index = getUtility(ISkinObject, name="index")
 
@@ -80,7 +79,7 @@ The component name is available in the ``name`` attribute::
 
 .. -> expr
 
-  >>> print(text_(eval(expr)))
+  >>> print(eval(expr))
   index
 
 We now move up one layer and consider the skin components as objects.
@@ -322,7 +321,7 @@ Let's add a new skin template with the source:
   from zope.component import queryUtility
   from pyramid_skins.interfaces import ISkinObject
   import os
-  import imp
+  import importlib.util
   import shutil
   import sys
   import tempfile
@@ -330,13 +329,11 @@ Let's add a new skin template with the source:
 
   tmppath = tempfile.mkdtemp()
   try:
-      try:
-          f = open(os.path.join(tmppath, 'foo.py'), 'w')
+      with open(os.path.join(tmppath, 'foo.py'), 'w+') as f:
           path, suffix = os.path.splitext(f.name)
           module = os.path.basename(path)
-          imp.load_module(module, open(f.name), path, (suffix, "r", imp.PY_SOURCE))
-      finally:
-          f.close()
+          spec = importlib.util.spec_from_file_location(module, f.name)
+      sys.modules[module] = importlib.util.module_from_spec(spec)
 
       # make skins directory
       dir = os.path.join(os.path.dirname(path), "skins")

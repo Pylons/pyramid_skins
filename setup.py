@@ -13,7 +13,6 @@
 ##############################################################################
 
 import os
-import sys
 
 from setuptools import setup, find_packages
 
@@ -28,7 +27,7 @@ requires = [
     'setuptools',
     'Chameleon >= 2.7',
     'zope.interface',
-    'pyramid >= 1.3',
+    'pyramid >= 1.5',
     ]
 
 docs_extras = [
@@ -37,21 +36,17 @@ docs_extras = [
     'repoze.sphinx.autointerface']
 
 testing_extras = [
+    'MacFSEvents;sys_platform=="darwin"',
     'manuel',
     'coverage',
-    'nose',
+    'nose2',
+    'pyinotify;sys_platform=="linux"',
     'pyramid_zcml >= 0.9.2',
     'zope.testing>3.8.7',
     'zope.component>3.9.2']
 
-if sys.platform == "darwin":
-    testing_extras.append("MacFSEvents")
-
-if sys.platform.startswith("linux"):
-    testing_extras.append("pyinotify")
-
 setup(name='pyramid_skins',
-      version = '2.2.dev0',
+      version = '3.0.dev0',
       description='Templating framework for Pyramid.',
       long_description=long_description,
       keywords = "pyramid templates",
@@ -61,6 +56,7 @@ setup(name='pyramid_skins',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: Zope Public License',
           'Programming Language :: Python',
+          'Programming Language :: Python :: 3 :: Only',
           'Natural Language :: English',
           'Operating System :: OS Independent',
           'Topic :: Internet :: WWW/HTTP',
@@ -73,6 +69,7 @@ setup(name='pyramid_skins',
       url='http://packages.python.org/pyramid_skins/',
       packages=find_packages('src'),
       package_dir = {'': 'src'},
+      python_requires=">=3.7",
       namespace_packages=[],
       include_package_data = True,
       zip_safe = False,
