@@ -46,7 +46,7 @@ testing_extras = [
     'zope.component>3.9.2']
 
 setup(name='pyramid_skins',
-      version = '3.0.dev0',
+      version = '3.0',
       description='Templating framework for Pyramid.',
       long_description=long_description,
       keywords = "pyramid templates",
